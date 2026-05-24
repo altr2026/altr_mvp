@@ -19,7 +19,7 @@ export function Hero({ liveIPCount }: Props) {
 
         <h1 className="mt-7 max-w-6xl text-[26px] font-semibold leading-[1.08] tracking-[-0.035em] md:text-[34px] lg:text-[44px] lg:tracking-[-0.045em]">
           <span className="block lg:whitespace-nowrap">
-            ALTR turns <RotatingWord words={ROTATING_LEFT} /> into{' '}
+            Turn <RotatingWord words={ROTATING_LEFT} /> into{' '}
             <RotatingWord words={ROTATING_RIGHT} />.
           </span>
         </h1>
