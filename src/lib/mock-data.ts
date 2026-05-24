@@ -773,6 +773,15 @@ const mockDeals: Deal[] = [
 
 const mockInsights: Insight[] = [
   {
+    id: 'i_we_started_here',
+    category: "Founder's Note",
+    publishedAt: '2026-05-25',
+    title: 'We started here',
+    summary:
+      "Dubai's F1 hospitality suites hold some of the highest-spending K-content fans on earth. None of them are wearing a Korean brand — not because the demand isn't real, but because nobody built the rail.",
+    href: '/insights/we-started-here',
+  },
+  {
     id: 'i_gcc_2025',
     category: 'Market data',
     publishedAt: '2026-04-18',

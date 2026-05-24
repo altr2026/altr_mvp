@@ -184,7 +184,11 @@ export type AgentTurnResponse = {
   }
 }
 
-export type InsightCategory = 'Market data' | 'Pricing' | 'Trends'
+export type InsightCategory =
+  | 'Market data'
+  | 'Pricing'
+  | 'Trends'
+  | "Founder's Note"
 
 export type Insight = {
   id: string
