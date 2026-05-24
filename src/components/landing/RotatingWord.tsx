@@ -2,73 +2,76 @@
 
 import { useEffect, useState } from 'react'
 
-type Phase = 'typing' | 'pausing' | 'deleting'
-
 type Props = {
   words: string[]
-  typeMs?: number
-  deleteMs?: number
-  pauseMs?: number
+  intervalMs?: number
+  transitionMs?: number
   className?: string
 }
 
 export function RotatingWord({
   words,
-  typeMs = 70,
-  deleteMs = 38,
-  pauseMs = 1500,
+  intervalMs = 2200,
+  transitionMs = 550,
   className = 'text-altr-mint',
 }: Props) {
   const [index, setIndex] = useState(0)
-  const [text, setText] = useState('')
-  const [phase, setPhase] = useState<Phase>('typing')
-
-  const longest = words.reduce((a, b) => (a.length >= b.length ? a : b), '')
+  const [transitionOn, setTransitionOn] = useState(true)
 
   useEffect(() => {
-    if (words.length === 0) return
-    const current = words[index] ?? ''
-    let timer: ReturnType<typeof setTimeout> | null = null
+    if (words.length <= 1) return
+    const timer = setInterval(() => {
+      setIndex((i) => i + 1)
+    }, intervalMs)
+    return () => clearInterval(timer)
+  }, [words.length, intervalMs])
 
-    if (phase === 'typing') {
-      if (text.length < current.length) {
-        timer = setTimeout(
-          () => setText(current.slice(0, text.length + 1)),
-          typeMs,
-        )
-      } else {
-        timer = setTimeout(() => setPhase('pausing'), 0)
-      }
-    } else if (phase === 'pausing') {
-      timer = setTimeout(() => setPhase('deleting'), pauseMs)
-    } else if (phase === 'deleting') {
-      if (text.length > 0) {
-        timer = setTimeout(() => setText(text.slice(0, -1)), deleteMs)
-      } else {
-        setIndex((i) => (i + 1) % words.length)
-        setPhase('typing')
-      }
+  useEffect(() => {
+    if (index === words.length) {
+      const t = setTimeout(() => {
+        setTransitionOn(false)
+        setIndex(0)
+      }, transitionMs)
+      return () => clearTimeout(t)
     }
+    if (!transitionOn) {
+      const raf = requestAnimationFrame(() => setTransitionOn(true))
+      return () => cancelAnimationFrame(raf)
+    }
+  }, [index, words.length, transitionMs, transitionOn])
 
-    return () => {
-      if (timer) clearTimeout(timer)
-    }
-  }, [text, phase, index, words, typeMs, deleteMs, pauseMs])
+  if (words.length === 0) return null
+
+  const longest = words.reduce((a, b) => (a.length >= b.length ? a : b), '')
+  const stack = [...words, words[0]]
 
   return (
-    <span className="relative inline-block align-baseline">
+    <span
+      className="relative inline-block overflow-hidden align-baseline"
+      style={{ height: '1.1em', lineHeight: '1.1em' }}
+    >
       <span className="invisible whitespace-nowrap" aria-hidden>
         {longest}
       </span>
       <span
-        className={`absolute top-0 left-0 whitespace-nowrap ${className}`}
+        className={`absolute top-0 left-0 flex flex-col ${className}`}
+        style={{
+          transform: `translateY(-${index * 100}%)`,
+          transition: transitionOn
+            ? `transform ${transitionMs}ms cubic-bezier(0.16, 1, 0.3, 1)`
+            : 'none',
+        }}
         aria-live="polite"
       >
-        {text}
-        <span
-          className="altr-cursor ml-[2px] inline-block h-[0.85em] w-[2px] translate-y-[0.08em] bg-current align-baseline"
-          aria-hidden
-        />
+        {stack.map((word, i) => (
+          <span
+            key={i}
+            className="block whitespace-nowrap"
+            style={{ height: '1.1em', lineHeight: '1.1em' }}
+          >
+            {word}
+          </span>
+        ))}
       </span>
     </span>
   )

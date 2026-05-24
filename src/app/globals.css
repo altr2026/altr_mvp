@@ -65,17 +65,3 @@ html {
   animation: altr-pulse-dot 2s ease-in-out infinite;
 }
 
-@keyframes altr-blink-cursor {
-  0%,
-  49% {
-    opacity: 1;
-  }
-  50%,
-  100% {
-    opacity: 0;
-  }
-}
-
-.altr-cursor {
-  animation: altr-blink-cursor 1s step-end infinite;
-}
