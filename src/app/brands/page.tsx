@@ -33,16 +33,16 @@ export default async function BrandsPage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
-              href="#live-ip"
+              href="#waitlist"
               className="rounded-lg bg-altr-mint px-6 py-3 text-[13px] font-semibold text-altr-white transition hover:bg-altr-mint-bright"
             >
-              Browse the catalogue
+              Post your brief
             </Link>
             <Link
-              href="#waitlist"
+              href="#live-ip"
               className="rounded-lg border border-altr-mint-bright/30 bg-altr-mint/[0.08] px-6 py-3 text-[13px] font-semibold text-altr-mint-bright transition hover:border-altr-mint hover:bg-altr-mint/[0.16]"
             >
-              Get early access
+              Explore live spots
             </Link>
           </div>
         </div>
