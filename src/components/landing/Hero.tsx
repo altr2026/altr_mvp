@@ -17,8 +17,7 @@ export function Hero({ liveIPCount }: Props) {
         <HeroHeadline />
 
         <p className="mt-3 max-w-2xl text-[13px] leading-[1.5] text-altr-text-2 md:mt-4 md:text-[14px]">
-          The AI agent for Live IP × Brand synergy — search, match, settle,
-          and prove ROI from real revenue. End to end.
+          Live properties get funded. Brands get presence. That&apos;s ALTR.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
