@@ -31,48 +31,48 @@ export function LiveIPCard({ rightHolder: rh }: Props) {
     s.baseRate < min.baseRate ? s : min,
   )
   return (
-    <article className="group flex flex-col overflow-hidden rounded-xl border border-white/[0.06] bg-altr-card transition hover:border-altr-mint-bright/30">
-      <div className="relative aspect-[16/10] w-full overflow-hidden">
-        <Image
-          src={rh.heroImage}
-          alt={rh.name}
-          fill
-          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-          className="object-cover transition duration-500 group-hover:scale-[1.02]"
-        />
-        <div className="absolute top-3 left-3 flex gap-1.5">
-          <span className="rounded bg-altr-bg/80 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-altr-white backdrop-blur">
-            {TYPE_LABEL[rh.type]}
-          </span>
-          <span className="rounded bg-altr-bg/80 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-altr-mint-bright backdrop-blur">
-            {rh.region}
-          </span>
-        </div>
+    <article className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/[0.06] bg-altr-card transition hover:border-altr-mint-bright/40">
+      <Image
+        src={rh.heroImage}
+        alt={rh.name}
+        fill
+        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+        className="object-cover transition duration-700 group-hover:scale-[1.04]"
+      />
+
+      <div className="absolute inset-0 bg-gradient-to-t from-altr-bg via-altr-bg/85 via-40% to-altr-bg/0 to-65%" />
+
+      <div className="absolute top-4 left-4 flex gap-1.5">
+        <span className="rounded bg-altr-bg/85 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-altr-white backdrop-blur">
+          {TYPE_LABEL[rh.type]}
+        </span>
+        <span className="rounded bg-altr-bg/85 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-altr-mint-bright backdrop-blur">
+          {rh.region}
+        </span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-5">
-        <h3 className="text-[16px] font-semibold leading-[1.3] text-altr-white">
+      <div className="absolute top-4 right-4 rounded-md bg-altr-bg/85 px-2 py-1 font-mono text-[10px] backdrop-blur">
+        <span className="tracking-wider text-altr-text-3 uppercase">From </span>
+        <span className="font-semibold text-altr-lime">
+          {formatPrice(lowestSlot.baseRate)}
+        </span>
+      </div>
+
+      <div className="absolute right-5 bottom-5 left-5 flex flex-col gap-2">
+        <h3 className="text-[18px] leading-[1.2] font-semibold tracking-[-0.01em] text-altr-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] md:text-[20px]">
           {rh.name}
         </h3>
-        <p className="text-[13px] text-altr-text-2">
-          {rh.city}, {rh.country}
-        </p>
-        <div className="mt-3 flex items-end justify-between border-t border-white/[0.05] pt-3">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-wider text-altr-text-3">
-              Reach
-            </p>
-            <p className="font-mono text-[15px] text-altr-white">
+        <div className="flex items-center justify-between gap-3">
+          <p className="truncate text-[12.5px] text-altr-text-2">
+            {rh.city}, {rh.country}
+          </p>
+          <div className="flex flex-shrink-0 items-baseline gap-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-altr-text-3">
+              reach
+            </span>
+            <span className="font-mono text-[13px] font-semibold text-altr-white">
               {formatReach(rh.audienceSize)}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="font-mono text-[10px] uppercase tracking-wider text-altr-text-3">
-              From
-            </p>
-            <p className="font-mono text-[15px] text-altr-lime">
-              {formatPrice(lowestSlot.baseRate)}
-            </p>
+            </span>
           </div>
         </div>
       </div>
