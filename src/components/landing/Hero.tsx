@@ -1,12 +1,9 @@
 import Link from 'next/link'
-import { RotatingWord } from './RotatingWord'
+import { HeroHeadline } from './HeroHeadline'
 
 type Props = {
   liveIPCount: number
 }
-
-const ROTATING_LEFT = ['sponsorship', 'live activation', 'brand pop-up']
-const ROTATING_RIGHT = ['revenue', 'presence', 'market entry']
 
 export function Hero({ liveIPCount }: Props) {
   return (
@@ -17,12 +14,7 @@ export function Hero({ liveIPCount }: Props) {
           Sponsorship OS · ASIA
         </span>
 
-        <h1 className="mt-7 max-w-6xl text-[26px] font-semibold leading-[1.08] tracking-[-0.035em] md:text-[34px] lg:text-[44px] lg:tracking-[-0.045em]">
-          <span className="block lg:whitespace-nowrap">
-            Turn <RotatingWord words={ROTATING_LEFT} /> into{' '}
-            <RotatingWord words={ROTATING_RIGHT} />, with us.
-          </span>
-        </h1>
+        <HeroHeadline />
 
         <p className="mt-3 max-w-2xl text-[13px] leading-[1.5] text-altr-text-2 md:mt-4 md:text-[14px]">
           The AI agent for Live IP × Brand synergy — search, match, settle,
