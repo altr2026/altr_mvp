@@ -11,18 +11,26 @@ import type {
 import { narrowRightHolders } from './mock-data'
 
 const VERTICAL_OPTIONS: ConversationOption[] = [
-  { id: 'v-beauty', label: 'Beauty', value: 'beauty' },
-  { id: 'v-fnb', label: 'F&B', value: 'F&B' },
-  { id: 'v-fashion', label: 'Fashion', value: 'fashion' },
-  { id: 'v-ip', label: 'IP / Entertainment', value: 'IP' },
-  { id: 'v-lifestyle', label: 'Lifestyle', value: 'lifestyle' },
+  { id: 'v-fnb', label: 'F&B — restaurant, food, beverage', value: 'F&B' },
+  { id: 'v-beauty', label: 'Beauty / skincare', value: 'beauty' },
+  {
+    id: 'v-fashion',
+    label: 'Fashion / streetwear / lifestyle',
+    value: 'fashion',
+  },
+  {
+    id: 'v-ip',
+    label: 'Entertainment / media / gaming IP',
+    value: 'IP',
+  },
+  { id: 'v-lifestyle', label: 'Health & wellness', value: 'lifestyle' },
 ]
 
 const REGION_OPTIONS: ConversationOption[] = [
-  { id: 'r-gcc', label: 'GCC (UAE, KSA, Qatar)', value: 'GCC' },
-  { id: 'r-apac', label: 'APAC (SG, JP, TH, ID)', value: 'APAC' },
+  { id: 'r-gcc', label: 'UAE / Saudi Arabia / GCC', value: 'GCC' },
+  { id: 'r-apac', label: 'APAC (Korea, Japan, SEA)', value: 'APAC' },
   { id: 'r-eu', label: 'Europe', value: 'EU' },
-  { id: 'r-na', label: 'North America', value: 'NA' },
+  { id: 'r-na', label: 'US', value: 'NA' },
 ]
 
 const FORMAT_OPTIONS: ConversationOption[] = [
@@ -82,6 +90,38 @@ export function initialState(sessionId: string): ConversationState {
   }
 }
 
+async function tryLLMFallback(
+  userInput: string,
+  contextHint: string,
+): Promise<string | null> {
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey || !userInput) return null
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 220,
+        system: `You are ALTR's agent. ALTR is sponsorship infrastructure for K-content brands and Live IP (right holders) across Asia — search, match, settle, prove ROI from real revenue. Stay on-topic about ALTR, sponsorship deals, Live IP, brands, or related domain. Keep replies to 1–2 sentences, conversational, then nudge the user back to the on-screen options. Current step context: ${contextHint}.`,
+        messages: [{ role: 'user', content: userInput }],
+      }),
+    })
+    if (!res.ok) return null
+    const data = (await res.json()) as {
+      content?: { text?: string }[]
+    }
+    const reply = data?.content?.[0]?.text
+    return typeof reply === 'string' ? reply.trim() : null
+  } catch {
+    return null
+  }
+}
+
 export async function runAgentTurn(
   state: ConversationState,
   userInput: string,
@@ -101,9 +141,13 @@ export async function runAgentTurn(
     case 'vertical': {
       const vertical = matchVertical(trimmed)
       if (!vertical) {
+        const llm = await tryLLMFallback(
+          trimmed,
+          'Asking the user to pick their brand vertical (F&B, Beauty, Fashion, Entertainment IP, Health & wellness)',
+        )
         return {
           state,
-          reply: 'Pick one of the verticals below to continue.',
+          reply: llm ?? 'Pick one of the verticals below to continue.',
           options: VERTICAL_OPTIONS,
           done: false,
         }
@@ -120,9 +164,13 @@ export async function runAgentTurn(
     case 'region': {
       const region = matchRegion(trimmed)
       if (!region) {
+        const llm = await tryLLMFallback(
+          trimmed,
+          'Asking the user which market they want to enter (GCC, APAC, Europe, US)',
+        )
         return {
           state,
-          reply: 'Pick a region below.',
+          reply: llm ?? 'Pick a region below.',
           options: REGION_OPTIONS,
           done: false,
         }
@@ -140,9 +188,13 @@ export async function runAgentTurn(
     case 'format': {
       const formatPreference = matchFormat(trimmed)
       if (!formatPreference) {
+        const llm = await tryLLMFallback(
+          trimmed,
+          'Asking the user how they want to show up on stage (Booth, Pop-up RS, Branded zone, Open to all)',
+        )
         return {
           state,
-          reply: 'Pick a format below.',
+          reply: llm ?? 'Pick a format below.',
           options: FORMAT_OPTIONS,
           done: false,
         }
@@ -162,9 +214,13 @@ export async function runAgentTurn(
     case 'budget': {
       const ceiling = matchBudget(trimmed)
       if (ceiling === null) {
+        const llm = await tryLLMFallback(
+          trimmed,
+          'Asking the user for their budget tier (<$50k, $50-200k, $200-500k, $500k+)',
+        )
         return {
           state,
-          reply: 'Pick a budget tier below.',
+          reply: llm ?? 'Pick a budget tier below.',
           options: BUDGET_OPTIONS,
           done: false,
         }
@@ -185,9 +241,13 @@ export async function runAgentTurn(
     case 'anchor-need': {
       const needsAnchor = matchAnchor(trimmed)
       if (needsAnchor === null) {
+        const llm = await tryLLMFallback(
+          trimmed,
+          'Asking the user whether they need a stage with anchor IP/audience or are open to newer stages',
+        )
         return {
           state,
-          reply: 'Pick one of the two options.',
+          reply: llm ?? 'Pick one of the two options.',
           options: ANCHOR_OPTIONS,
           done: false,
         }

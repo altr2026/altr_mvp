@@ -119,6 +119,7 @@ export function FloatingChatWidget() {
               <ResultsList
                 rightHolders={results.rightHolders}
                 matches={results.matches}
+                compact
               />
             )}
             {done && (

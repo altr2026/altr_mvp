@@ -211,6 +211,19 @@ export type WaitlistSubmission = {
   notes?: string
 }
 
+export type AuthSubmission = {
+  email: string
+  walletAddress?: string | null
+}
+
+export type AuthSigninResponse =
+  | { ok: true; mode: 'magic-link' | 'wallet'; message: string }
+  | { ok: false; reason: string }
+
+export type AuthSignupResponse =
+  | { ok: true; message: string }
+  | { ok: false; reason: string }
+
 export type ApiResponse<T> = {
   data: T
 }
