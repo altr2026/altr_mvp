@@ -65,3 +65,44 @@ html {
   animation: altr-pulse-dot 2s ease-in-out infinite;
 }
 
+@keyframes altr-rotate-3 {
+  0%,
+  19% {
+    transform: translateY(0);
+  }
+  25%,
+  44% {
+    transform: translateY(-100%);
+  }
+  50%,
+  69% {
+    transform: translateY(-200%);
+  }
+  75%,
+  100% {
+    transform: translateY(-300%);
+  }
+}
+
+.altr-rotate-3 {
+  animation: altr-rotate-3 8.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+@keyframes altr-rotate-2 {
+  0%,
+  35% {
+    transform: translateY(0);
+  }
+  50%,
+  85% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(-200%);
+  }
+}
+
+.altr-rotate-2 {
+  animation: altr-rotate-2 6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+

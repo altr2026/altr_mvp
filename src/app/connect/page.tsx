@@ -10,7 +10,7 @@ export const metadata = {
 export default function ConnectPage() {
   return (
     <>
-      <section className="px-6 pt-16 pb-20 md:px-8 md:pt-24 md:pb-28">
+      <section className="px-6 pt-8 pb-20 md:px-8 md:pt-12 md:pb-28">
         <div className="mx-auto max-w-md">
           <span className="inline-flex items-center gap-2 rounded border border-altr-mint-bright/30 bg-altr-mint/[0.06] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-altr-mint-bright">
             Sign in
