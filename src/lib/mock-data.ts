@@ -12,8 +12,8 @@ import type {
   Vertical,
 } from '@/types'
 
-const rhImg = (seed: string) =>
-  `https://picsum.photos/seed/${seed}/1200/800`
+const rhImg = (tags: string, seed: string) =>
+  `https://loremflickr.com/1200/800/${tags}?lock=${seed}`
 
 const brandLogo = (seed: string) =>
   `https://picsum.photos/seed/${seed}/400/400`
@@ -33,7 +33,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'C-suite buyers, founders, investors · Dec 7–11, 2026 · Dubai Exhibition Centre',
     verticals: ['IP'],
-    heroImage: rhImg('gitex-global-2026'),
+    heroImage: rhImg('technology,conference,expo', 'gitex-2026'),
     availableSlots: [
       {
         id: 'sl_gitex_booth',
@@ -67,7 +67,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'High-net-worth, VIP, lifestyle premium · Dec 4–6, 2026 · Yas Marina',
     verticals: ['lifestyle', 'entertainment'],
-    heroImage: rhImg('f1-abu-dhabi-2026'),
+    heroImage: rhImg('formula1,racing,grandprix', 'f1-abudhabi-2026'),
     availableSlots: [
       {
         id: 'sl_f1_hospitality',
@@ -101,7 +101,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'Luxury collectors, global galleries, cultural institutions · Nov 19–22, 2026',
     verticals: ['lifestyle', 'fashion'],
-    heroImage: rhImg('frieze-abu-dhabi-2026'),
+    heroImage: rhImg('artfair,gallery,contemporaryart', 'frieze-abudhabi'),
     availableSlots: [
       {
         id: 'sl_frieze_booth',
@@ -135,7 +135,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'Art collectors, cultural institutions, luxury brands · May 15–17, 2026 · Madinat Jumeirah',
     verticals: ['lifestyle', 'fashion'],
-    heroImage: rhImg('art-dubai-2026'),
+    heroImage: rhImg('artgallery,sculpture,exhibition', 'art-dubai-20'),
     availableSlots: [
       {
         id: 'sl_artdubai_booth',
@@ -169,7 +169,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'Consumer mass-market + GCC tourists · Dec 2026 – Jan 2027 · citywide',
     verticals: ['beauty', 'F&B', 'fashion', 'lifestyle'],
-    heroImage: rhImg('dsf-2026'),
+    heroImage: rhImg('shopping,dubai,nightlights', 'dsf-2026'),
     availableSlots: [
       {
         id: 'sl_dsf_booth',
@@ -211,7 +211,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'Family + multicultural tourists · Oct 2026 – Apr 2027 · season-long',
     verticals: ['F&B', 'lifestyle', 'entertainment'],
-    heroImage: rhImg('global-village-31'),
+    heroImage: rhImg('festival,fireworks,pavilion', 'global-village-31'),
     availableSlots: [
       {
         id: 'sl_gv_popup_1mo',
@@ -245,7 +245,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'High-net-worth, luxury fashion crossover · March 28, 2026 (annual) · Meydan',
     verticals: ['fashion', 'lifestyle', 'entertainment'],
-    heroImage: rhImg('dubai-world-cup-2026'),
+    heroImage: rhImg('horseracing,racetrack,jockey', 'dubai-world-cup-2026'),
     availableSlots: [
       {
         id: 'sl_dwc_vipbox',
@@ -279,7 +279,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'Startups, investors, gov officials · Aug 31 – Sep 3, 2026 · Riyadh Exhibition Centre',
     verticals: ['IP'],
-    heroImage: rhImg('leap-2026'),
+    heroImage: rhImg('technology,stage,riyadh', 'leap-2026'),
     availableSlots: [
       {
         id: 'sl_leap_booth',
@@ -313,7 +313,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'UAE royal family + women-led consumers · Jan 12–17, 2026 · ADNEC Marina Hall',
     verticals: ['beauty', 'fashion', 'lifestyle'],
-    heroImage: rhImg('ataya-2026'),
+    heroImage: rhImg('luxury,jewelry,exhibition', 'ataya-2026'),
     availableSlots: [
       {
         id: 'sl_ataya_booth',
@@ -347,7 +347,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'Architects, designers, cultural institutions, sustainability brands · Nov 2026 – Mar 2027',
     verticals: ['lifestyle', 'fashion'],
-    heroImage: rhImg('sharjah-triennial-3'),
+    heroImage: rhImg('architecture,modernbuilding,facade', 'sharjah-triennial-3'),
     availableSlots: [
       {
         id: 'sl_sharjah_booth',
@@ -381,7 +381,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'Highly educated, high-income opinion leaders · Jan 21–27, 2026',
     verticals: ['IP', 'lifestyle'],
-    heroImage: rhImg('emirates-litfest-2026'),
+    heroImage: rhImg('books,library,literature', 'emirates-litfest-2026'),
     availableSlots: [
       {
         id: 'sl_litfest_booth',
@@ -415,7 +415,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'Healthcare execs, B2B buyers, MedTech innovators · Feb 9–12, 2026 · Dubai Exhibition Centre',
     verticals: ['lifestyle'],
-    heroImage: rhImg('whx-2026'),
+    heroImage: rhImg('healthcare,medical,laboratory', 'whx-2026'),
     availableSlots: [
       {
         id: 'sl_whx_booth',

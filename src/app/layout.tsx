@@ -15,9 +15,34 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://demo.altr.haus'),
   title: 'ALTR — Sponsorship OS',
   description:
     'Sponsorship infrastructure for live events across ASIA. The AI agent for Live IP × brand match — search, match, settle in seconds, prove ROI from real revenue.',
+  openGraph: {
+    title: 'ALTR — Sponsorship OS',
+    description:
+      'Live properties get funded. Brands get presence. The AI agent for Live IP × brand match across ASIA.',
+    url: 'https://demo.altr.haus',
+    siteName: 'ALTR',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'ALTR — Sponsorship OS',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'ALTR — Sponsorship OS',
+    description:
+      'Live properties get funded. Brands get presence. The AI agent for Live IP × brand match across ASIA.',
+    images: ['/og-image.png'],
+  },
 }
 
 export default function RootLayout({
