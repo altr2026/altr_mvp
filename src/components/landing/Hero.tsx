@@ -11,7 +11,7 @@ export function Hero({ liveIPCount }: Props) {
       <div className="mx-auto max-w-6xl">
         <span className="inline-flex items-center gap-2 rounded border border-altr-mint-bright/30 bg-altr-mint/[0.06] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-altr-mint-bright">
           <span className="altr-pulse-dot inline-block h-1.5 w-1.5 rounded-[1px] bg-altr-lime" />
-          Sponsorship OS · ASIA
+          Live IP × Brand · Cross-Border
         </span>
 
         <HeroHeadline />

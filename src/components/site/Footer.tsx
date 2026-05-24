@@ -14,7 +14,7 @@ export function Footer() {
             className="h-[22px] w-auto"
           />
           <p className="max-w-xs text-[13px] leading-[1.55] text-altr-text-2">
-            Sponsorship infrastructure for live events across ASIA.
+            Cross-border infrastructure for Live IP and brands across ASIA.
           </p>
         </div>
 
