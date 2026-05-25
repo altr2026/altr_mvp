@@ -20,17 +20,19 @@ export default async function BrandsPage() {
     <>
       <section className="px-6 pt-16 pb-14 md:px-8 md:pt-24 md:pb-20">
         <div className="mx-auto max-w-6xl">
-          <span className="inline-flex items-center gap-2 rounded border border-altr-mint-bright/30 bg-altr-mint/[0.06] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-altr-mint-bright">
-            For Brands
-          </span>
-          <h1 className="mt-7 max-w-4xl text-[26px] font-semibold leading-[1.08] tracking-[-0.035em] md:text-[34px] lg:text-[44px] lg:tracking-[-0.045em]">
-            Every live stage activation{' '}
-            <span className="text-altr-mint">in one place.</span>
-          </h1>
-          <p className="mt-3 max-w-2xl text-[13px] leading-[1.5] text-altr-text-2 md:mt-4 md:text-[14px]">
-            Transparent pricing. Audience data. ROI you can prove. Built for
-            brands entering ASIA live stages.
-          </p>
+          <div className="min-h-[210px] md:min-h-[220px] lg:min-h-[200px]">
+            <span className="inline-flex items-center gap-2 rounded border border-altr-mint-bright/30 bg-altr-mint/[0.06] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-altr-mint-bright">
+              For Brands
+            </span>
+            <h1 className="mt-7 max-w-4xl text-[26px] font-semibold leading-[1.08] tracking-[-0.035em] md:text-[34px] lg:text-[44px] lg:tracking-[-0.045em]">
+              Every live stage activation{' '}
+              <span className="text-altr-mint">in one place.</span>
+            </h1>
+            <p className="mt-3 max-w-2xl text-[13px] leading-[1.5] text-altr-text-2 md:mt-4 md:text-[14px]">
+              Transparent pricing. Audience data. ROI you can prove. Built for
+              brands entering ASIA live stages.
+            </p>
+          </div>
           <div className="mt-12 flex flex-wrap items-center gap-3 md:mt-14">
             <Link
               href="/brief"

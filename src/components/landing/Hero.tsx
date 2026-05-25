@@ -9,16 +9,18 @@ export function Hero({ liveIPCount }: Props) {
   return (
     <section className="px-6 pt-16 pb-14 md:px-8 md:pt-24 md:pb-20">
       <div className="mx-auto max-w-6xl">
-        <span className="inline-flex items-center gap-2 rounded border border-altr-mint-bright/30 bg-altr-mint/[0.06] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-altr-mint-bright">
-          <span className="altr-pulse-dot inline-block h-1.5 w-1.5 rounded-[1px] bg-altr-lime" />
-          Live IP × Brand · Cross-Border
-        </span>
+        <div className="min-h-[210px] md:min-h-[220px] lg:min-h-[200px]">
+          <span className="inline-flex items-center gap-2 rounded border border-altr-mint-bright/30 bg-altr-mint/[0.06] px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.2em] text-altr-mint-bright">
+            <span className="altr-pulse-dot inline-block h-1.5 w-1.5 rounded-[1px] bg-altr-lime" />
+            Live IP × Brand · Cross-Border
+          </span>
 
-        <HeroHeadline />
+          <HeroHeadline />
 
-        <p className="mt-3 max-w-2xl text-[13px] leading-[1.5] text-altr-text-2 md:mt-4 md:text-[14px]">
-          Live properties get funded. Brands get presence. That&apos;s ALTR.
-        </p>
+          <p className="mt-3 max-w-2xl text-[13px] leading-[1.5] text-altr-text-2 md:mt-4 md:text-[14px]">
+            Live properties get funded. Brands get presence. That&apos;s ALTR.
+          </p>
+        </div>
 
         <HeroCTAs />
 
