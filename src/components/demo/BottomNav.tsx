@@ -14,8 +14,11 @@ export function BottomNav() {
   const step = stepFromPath(pathname)
 
   if (!step) return null
+  // Steps 1-3 have their own inline CTAs (form submit, card select, etc.)
+  // BottomNav only surfaces on tracker-visible steps (4+).
+  if (step.number < 4) return null
 
-  const prevStep = step.number > 1 ? DEMO_STEPS[step.number - 2] : null
+  const prevStep = step.number > 4 ? DEMO_STEPS[step.number - 2] : null
   const nextStep = step.number < DEMO_STEPS.length ? DEMO_STEPS[step.number] : null
   const isFinal = step.number === DEMO_STEPS.length
 

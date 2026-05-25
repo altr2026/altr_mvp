@@ -33,10 +33,10 @@ export default async function BrandsPage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
-              href="#waitlist"
+              href="/brief"
               className="rounded-lg bg-altr-mint px-6 py-3 text-[13px] font-semibold text-altr-white transition hover:bg-altr-mint-bright"
             >
-              Post your brief
+              Post your brief →
             </Link>
             <Link
               href="#live-ip"

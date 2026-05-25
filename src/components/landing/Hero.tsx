@@ -22,10 +22,10 @@ export function Hero({ liveIPCount }: Props) {
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
           <Link
-            href="#live-ip"
+            href="/brands"
             className="rounded-lg bg-altr-mint px-6 py-3 text-[13px] font-semibold text-altr-white transition hover:bg-altr-mint-bright"
           >
-            Browse ALTR Free
+            Browse ALTR Free →
           </Link>
           <Link
             href="#waitlist"

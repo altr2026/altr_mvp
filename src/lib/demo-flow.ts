@@ -12,7 +12,7 @@ export type DemoStep = {
 export const DEMO_STEPS: DemoStep[] = [
   {
     number: 1,
-    route: '/',
+    route: '/brief',
     label: 'Brand profile',
     shortLabel: 'Profile',
     layer: 'intelligence',

@@ -1,15 +1,29 @@
-import { BrandProfileForm } from '@/components/step1/BrandProfileForm'
+import { EarlyAccessForm } from '@/components/landing/EarlyAccessForm'
+import { FromTheLab } from '@/components/landing/FromTheLab'
+import { Hero } from '@/components/landing/Hero'
+import { HowItWorks } from '@/components/landing/HowItWorks'
+import { LiveIPCarousel } from '@/components/landing/LiveIPCarousel'
+import { ThreePaths } from '@/components/landing/ThreePaths'
+import { WhyWeExist } from '@/components/landing/WhyWeExist'
+import { Footer } from '@/components/site/Footer'
+import { getInsights, getRightHolders } from '@/lib/mock-data'
 
-export const metadata = {
-  title: 'Step 1 — Brand profile · ALTR',
-  description:
-    'Tell ALTR about your brand. Vertical, market, goal, format, budget, timeline — the matching engine reads these signals to surface the right Live IP.',
-}
+export default async function HomePage() {
+  const [rightHolders, insights] = await Promise.all([
+    getRightHolders(),
+    getInsights(),
+  ])
 
-export default function Step1Page() {
   return (
-    <div className="mx-auto w-full max-w-[1120px] px-6 py-10 md:px-8 md:py-12">
-      <BrandProfileForm />
-    </div>
+    <>
+      <Hero liveIPCount={rightHolders.length} />
+      <LiveIPCarousel rightHolders={rightHolders} />
+      <ThreePaths />
+      <HowItWorks />
+      <WhyWeExist />
+      <FromTheLab insights={insights} />
+      <EarlyAccessForm />
+      <Footer />
+    </>
   )
 }
