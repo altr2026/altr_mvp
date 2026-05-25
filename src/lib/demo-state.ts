@@ -52,6 +52,11 @@ export type MatchMeta = {
   category: string
   location: string
   timing: string
+  image: string
+  visitors: string
+  audienceProfile: string
+  pastDealsCount: number
+  pastDealAvgROI: string
 }
 
 export const MATCH_META: Record<MatchResult['id'], MatchMeta> = {
@@ -62,6 +67,12 @@ export const MATCH_META: Record<MatchResult['id'], MatchMeta> = {
     category: 'Art & Culture Festival',
     location: 'Abu Dhabi, UAE',
     timing: 'Q3 2026',
+    image:
+      'https://loremflickr.com/1200/800/artfair,gallery,contemporaryart?lock=frieze-abudhabi',
+    visitors: '35K',
+    audienceProfile: '68% female · HHI $120K+ · collectors + creative directors',
+    pastDealsCount: 3,
+    pastDealAvgROI: '4.6× revenue / 4.8% CVR',
   },
   dsf: {
     id: 'dsf',
@@ -70,6 +81,12 @@ export const MATCH_META: Record<MatchResult['id'], MatchMeta> = {
     category: 'Retail Festival',
     location: 'Dubai, UAE',
     timing: 'Q3 2026',
+    image:
+      'https://loremflickr.com/1200/800/shopping,festival,night?lock=dsf-2026',
+    visitors: '3.5M',
+    audienceProfile: 'Mass-market + GCC tourists · 70% female 25-44 ICP',
+    pastDealsCount: 4,
+    pastDealAvgROI: '2.8× revenue / 3.6% CVR',
   },
   'art-dubai': {
     id: 'art-dubai',
@@ -78,6 +95,12 @@ export const MATCH_META: Record<MatchResult['id'], MatchMeta> = {
     category: 'Art Fair',
     location: 'Dubai, UAE',
     timing: 'Q3 2026',
+    image:
+      'https://loremflickr.com/1200/800/artgallery,sculpture,exhibition?lock=art-dubai-20',
+    visitors: '30K',
+    audienceProfile: '60% female · HHI $90K+ · 130 galleries from 35 countries',
+    pastDealsCount: 2,
+    pastDealAvgROI: '3.4× revenue / 4.1% CVR',
   },
 }
 

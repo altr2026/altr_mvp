@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { LOADING_MESSAGES } from '@/lib/match-fallback'
@@ -161,56 +162,78 @@ function MatchCard({
 
   return (
     <article
-      className={`flex flex-col gap-5 rounded-2xl border bg-demo-surface p-6 transition-all duration-500 md:p-7 ${
+      className={`flex flex-col overflow-hidden rounded-2xl border bg-demo-surface transition-all duration-500 ${
         isTop ? 'border-demo-teal/50' : 'border-demo-border'
       } ${visible ? 'translate-y-0 opacity-100' : 'translate-y-3 opacity-0'}`}
       style={{
         boxShadow: isTop ? '0 0 0 1px rgba(93, 202, 165, 0.15)' : undefined,
       }}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-[18px] font-bold tracking-[-0.01em] text-demo-text md:text-[20px]">
-            {meta.name}
-          </h3>
-          <span className="font-mono text-[10.5px] tracking-[0.15em] text-demo-text-faint uppercase">
-            {meta.category} · {meta.location} · {meta.timing}
-          </span>
-        </div>
+      <div className="relative aspect-[16/7] w-full overflow-hidden">
+        <Image
+          src={meta.image}
+          alt={meta.name}
+          fill
+          sizes="(min-width: 1024px) 720px, 100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-demo-surface from-5% via-demo-surface/65 via-55% to-demo-surface/0 to-100%" />
         <span
-          className="inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-[11px] tracking-wider uppercase"
+          className="absolute top-3 right-3 inline-flex items-center rounded-full border px-3 py-1 font-mono text-[11px] tracking-wider backdrop-blur uppercase"
           style={{
-            borderColor: isTop ? '#5DCAA5' : '#2A2A3A',
-            background: isTop ? '#1A2E28' : 'transparent',
-            color: isTop ? '#5DCAA5' : '#9896A8',
+            borderColor: isTop ? '#5DCAA5' : 'rgba(255,255,255,0.2)',
+            background: isTop ? 'rgba(26,46,40,0.85)' : 'rgba(10,10,15,0.7)',
+            color: isTop ? '#5DCAA5' : '#E8E6F0',
           }}
         >
           {m.match_score}% match
         </span>
+        <div className="absolute bottom-3 left-4 right-4 flex flex-col gap-1">
+          <h3 className="text-[17px] font-bold tracking-[-0.01em] text-demo-text drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] md:text-[19px]">
+            {meta.name}
+          </h3>
+          <span className="font-mono text-[10px] tracking-[0.15em] text-demo-text-dim uppercase">
+            {meta.category} · {meta.location} · {meta.timing}
+          </span>
+        </div>
       </div>
 
-      <div className="grid gap-2.5">
-        <ScoreBar label="Audience fit" value={m.score_breakdown.audience_fit} />
-        <ScoreBar label="Budget fit" value={m.score_breakdown.budget_fit} />
-        <ScoreBar
-          label="Category gap"
-          value={m.score_breakdown.vertical_demand}
+      <div className="grid grid-cols-3 divide-x divide-demo-border/60 border-b border-demo-border/60">
+        <StatTile label="Visitors" value={meta.visitors} />
+        <StatTile
+          label="Audience"
+          value={meta.audienceProfile}
+          mono={false}
+          small
         />
-        <ScoreBar label="Timing fit" value={m.score_breakdown.timing_fit} />
+        <StatTile
+          label="Past benchmark"
+          value={meta.pastDealAvgROI}
+          mono={false}
+          small
+        />
       </div>
 
-      <Section title="Why this match">
+      <div className="flex flex-col gap-5 p-5 md:p-6">
+        <div className="grid gap-2">
+          <ScoreBar label="Audience fit" value={m.score_breakdown.audience_fit} />
+          <ScoreBar label="Budget fit" value={m.score_breakdown.budget_fit} />
+          <ScoreBar
+            label="Category gap"
+            value={m.score_breakdown.vertical_demand}
+          />
+          <ScoreBar label="Timing fit" value={m.score_breakdown.timing_fit} />
+        </div>
+
         <p className="text-[14px] leading-[1.6] text-demo-text">
           {m.why_this_match}
         </p>
-      </Section>
 
-      <Section title="Key signals">
-        <ul className="flex flex-col gap-1.5">
+        <ul className="flex flex-col gap-1.5 border-y border-demo-border/60 py-4">
           {m.key_signals.map((s) => (
             <li
               key={s}
-              className="flex items-start gap-2 text-[13.5px] leading-[1.5] text-demo-text-dim"
+              className="flex items-start gap-2 text-[13px] leading-[1.5] text-demo-text-dim"
             >
               <span
                 className="mt-[7px] inline-block h-1 w-1 flex-shrink-0 rounded-[1px]"
@@ -220,72 +243,129 @@ function MatchCard({
             </li>
           ))}
         </ul>
-      </Section>
 
-      <Section title="ROI prediction">
-        <div className="grid gap-2 text-[13.5px] leading-[1.5]">
-          <ROIRow
-            label="Foot traffic"
-            value={`${m.roi_prediction.foot_traffic_min.toLocaleString()} – ${m.roi_prediction.foot_traffic_max.toLocaleString()} visitors`}
-          />
-          <ROIRow
-            label="Projected sales"
-            value={`$${(m.roi_prediction.projected_sales_min / 1000).toFixed(0)}K – $${(m.roi_prediction.projected_sales_max / 1000).toFixed(0)}K`}
-          />
-          <ROIRow
-            label="RS payout"
-            value={`$${(m.roi_prediction.rs_payout_min / 1000).toFixed(1)}K – $${(m.roi_prediction.rs_payout_max / 1000).toFixed(1)}K (at ${m.roi_prediction.rs_rate}% RS)`}
-          />
-          <ROIRow
-            label="Based on"
-            value={`${m.roi_prediction.benchmark_deals} similar K-brand × GCC deals`}
-          />
+        <div>
+          <div className="mb-2 flex items-baseline justify-between">
+            <span className="font-mono text-[10px] tracking-[0.2em] text-demo-text-faint uppercase">
+              ROI prediction
+            </span>
+            <span className="font-mono text-[10px] tracking-[0.15em] text-demo-text-faint uppercase">
+              {m.roi_prediction.benchmark_deals} similar deals
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <ROIPill
+              label="Foot traffic"
+              value={`${(m.roi_prediction.foot_traffic_min / 1000).toFixed(1)}K–${(m.roi_prediction.foot_traffic_max / 1000).toFixed(1)}K`}
+            />
+            <ROIPill
+              label="Sales"
+              value={`$${(m.roi_prediction.projected_sales_min / 1000).toFixed(0)}–${(m.roi_prediction.projected_sales_max / 1000).toFixed(0)}K`}
+            />
+            <ROIPill
+              label={`RS @ ${m.roi_prediction.rs_rate}%`}
+              value={`$${(m.roi_prediction.rs_payout_min / 1000).toFixed(1)}–${(m.roi_prediction.rs_payout_max / 1000).toFixed(1)}K`}
+            />
+          </div>
         </div>
-      </Section>
 
-      <Section title="ALTR edge" accent>
-        <p
-          className="text-[13.5px] leading-[1.6]"
-          style={{ color: '#5DCAA5' }}
-        >
-          {m.altr_edge}
-        </p>
-      </Section>
-
-      {m.risk_flags && m.risk_flags.length > 0 && (
         <div
-          className="rounded-lg border px-4 py-3"
+          className="rounded-lg border p-3.5"
           style={{
-            borderColor: 'rgba(248, 113, 113, 0.3)',
-            background: 'rgba(248, 113, 113, 0.06)',
+            borderColor: 'rgba(93,202,165,0.3)',
+            background: 'rgba(93,202,165,0.05)',
           }}
         >
-          {m.risk_flags.map((r) => (
-            <p
-              key={r}
-              className="flex items-start gap-2 text-[12.5px] leading-[1.5]"
-              style={{ color: '#F87171' }}
-            >
-              <span aria-hidden>⚠</span>
-              <span>{r}</span>
-            </p>
-          ))}
+          <span
+            className="font-mono text-[9.5px] tracking-[0.2em] uppercase"
+            style={{ color: '#5DCAA5' }}
+          >
+            ALTR edge
+          </span>
+          <p
+            className="mt-1.5 text-[13px] leading-[1.55]"
+            style={{ color: '#5DCAA5' }}
+          >
+            {m.altr_edge}
+          </p>
         </div>
-      )}
 
-      <button
-        type="button"
-        onClick={onSelect}
-        className={`mt-1 inline-flex items-center justify-center rounded-lg px-5 py-3 text-[13.5px] font-semibold transition ${
-          isTop
-            ? 'bg-demo-teal text-demo-bg hover:bg-demo-success'
-            : 'border border-demo-border bg-demo-bg/40 text-demo-text-dim hover:border-demo-teal/50 hover:text-demo-teal'
-        }`}
-        style={{ borderWidth: isTop ? 0 : '0.5px' }}
-      >
-        Select this stage →
-      </button>
+        {m.risk_flags && m.risk_flags.length > 0 && (
+          <div
+            className="rounded-lg border px-3.5 py-3"
+            style={{
+              borderColor: 'rgba(248, 113, 113, 0.3)',
+              background: 'rgba(248, 113, 113, 0.06)',
+            }}
+          >
+            {m.risk_flags.map((r) => (
+              <p
+                key={r}
+                className="flex items-start gap-2 text-[12.5px] leading-[1.5]"
+                style={{ color: '#F87171' }}
+              >
+                <span aria-hidden>⚠</span>
+                <span>{r}</span>
+              </p>
+            ))}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={onSelect}
+          className={`inline-flex items-center justify-center rounded-lg px-5 py-3 text-[13.5px] font-semibold transition ${
+            isTop
+              ? 'bg-demo-teal text-demo-bg hover:bg-demo-success'
+              : 'border border-demo-border bg-demo-bg/40 text-demo-text-dim hover:border-demo-teal/50 hover:text-demo-teal'
+          }`}
+          style={{ borderWidth: isTop ? 0 : '0.5px' }}
+        >
+          Select this stage →
+        </button>
+      </div>
     </article>
+  )
+}
+
+function StatTile({
+  label,
+  value,
+  mono = true,
+  small = false,
+}: {
+  label: string
+  value: string
+  mono?: boolean
+  small?: boolean
+}) {
+  return (
+    <div className="flex flex-col gap-1 px-3 py-3 md:px-4 md:py-3.5">
+      <span className="font-mono text-[9px] tracking-[0.2em] text-demo-text-faint uppercase">
+        {label}
+      </span>
+      <span
+        className={`${mono ? 'font-mono' : ''} ${small ? 'text-[11.5px]' : 'text-[16px] font-bold'} leading-[1.35] text-demo-text`}
+      >
+        {value}
+      </span>
+    </div>
+  )
+}
+
+function ROIPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-0.5 rounded-lg border border-demo-border bg-demo-bg/40 px-3 py-2.5">
+      <span className="font-mono text-[9px] tracking-[0.18em] text-demo-text-faint uppercase">
+        {label}
+      </span>
+      <span
+        className="font-mono text-[13px] font-bold"
+        style={{ color: '#5DCAA5' }}
+      >
+        {value}
+      </span>
+    </div>
   )
 }
 
