@@ -1,15 +1,20 @@
 'use client'
 
 import { useState, type FormEvent } from 'react'
+import { useRouter } from 'next/navigation'
 import type {
   AuthSigninResponse,
   AuthSignupResponse,
   AuthSubmission,
+  WaitlistRole,
 } from '@/types'
-import { isBusinessEmail, maskAddress } from '@/lib/auth-mock'
+import { isBusinessEmail } from '@/lib/auth-mock'
 
 type Mode = 'login' | 'signup'
 type Status = 'idle' | 'submitting' | 'success' | 'error'
+
+// Simulated Google-authenticated cohort user for demo purposes.
+const SIMULATED_GOOGLE_EMAIL = 'demo@altr.haus'
 
 const mockWalletAddress = (): string => {
   const part = (n: number) =>
@@ -18,20 +23,17 @@ const mockWalletAddress = (): string => {
 }
 
 export function ConnectPanel() {
+  const router = useRouter()
   const [mode, setMode] = useState<Mode>('login')
+  const [role, setRole] = useState<WaitlistRole>('brand')
   const [email, setEmail] = useState('')
-  const [walletAddress, setWalletAddress] = useState<string | null>(null)
   const [status, setStatus] = useState<Status>('idle')
   const [message, setMessage] = useState('')
 
   const emailFilled = email.trim().length > 0
   const emailIsBusiness = emailFilled && isBusinessEmail(email)
   const emailShowsError = emailFilled && !emailIsBusiness
-
-  const canLogin =
-    (emailIsBusiness || !!walletAddress) && status !== 'submitting'
-  const canSignup =
-    emailIsBusiness && !!walletAddress && status !== 'submitting'
+  const canSubmitForm = emailIsBusiness && status !== 'submitting'
 
   const reset = (next: Mode) => {
     setMode(next)
@@ -39,24 +41,23 @@ export function ConnectPanel() {
     setMessage('')
   }
 
-  const connectWallet = () => {
-    setWalletAddress(mockWalletAddress())
-  }
-
-  const submit = async (e: FormEvent) => {
-    e.preventDefault()
-    if (status === 'submitting') return
-    if (mode === 'login' && !canLogin) return
-    if (mode === 'signup' && !canSignup) return
-
+  const performAuth = async (
+    submissionEmail: string,
+    targetMode: Mode,
+    includeWallet: boolean,
+  ) => {
     setStatus('submitting')
     setMessage('')
 
     const submission: AuthSubmission = {
-      email: email.trim(),
-      walletAddress: walletAddress ?? null,
+      email: submissionEmail,
+      // Web3 wallet handshake still happens silently for signup so the
+      // server-side flow stays identical — users no longer see it.
+      walletAddress: includeWallet ? mockWalletAddress() : null,
+      role,
     }
-    const endpoint = mode === 'login' ? '/api/auth/signin' : '/api/auth/signup'
+    const endpoint =
+      targetMode === 'login' ? '/api/auth/signin' : '/api/auth/signup'
 
     try {
       const res = await fetch(endpoint, {
@@ -71,6 +72,11 @@ export function ConnectPanel() {
       if (data.ok) {
         setStatus('success')
         setMessage(data.message)
+        if (targetMode === 'login') {
+          window.setTimeout(() => {
+            router.push(role === 'brand' ? '/brands' : '/live-ip')
+          }, 1200)
+        }
       } else {
         setStatus('error')
         setMessage(data.reason)
@@ -79,6 +85,17 @@ export function ConnectPanel() {
       setStatus('error')
       setMessage('Network error. Try again or email hello@altr.haus.')
     }
+  }
+
+  const submitForm = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!canSubmitForm) return
+    await performAuth(email.trim(), mode, mode === 'signup')
+  }
+
+  const submitGoogle = async () => {
+    if (status === 'submitting') return
+    await performAuth(SIMULATED_GOOGLE_EMAIL, 'login', false)
   }
 
   return (
@@ -91,11 +108,31 @@ export function ConnectPanel() {
       </h1>
       <p className="mt-3 text-[14px] leading-[1.55] text-altr-text-2">
         {mode === 'login'
-          ? 'Early-access cohort. Use your business email or connect your wallet.'
-          : 'Business email + Web3 wallet required. We approve within 48 hours.'}
+          ? 'Early-access cohort. Continue with Google or your business email.'
+          : 'Business email required. We approve within 48 hours.'}
       </p>
 
-      <div className="mt-6 grid grid-cols-2 gap-0 overflow-hidden rounded-lg border border-white/[0.08]">
+      <div className="mt-6 flex flex-col gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-altr-text-3">
+          I am a
+        </span>
+        <div className="grid grid-cols-2 gap-2">
+          <RoleButton
+            active={role === 'brand'}
+            onClick={() => setRole('brand')}
+          >
+            I&apos;m a Brand
+          </RoleButton>
+          <RoleButton
+            active={role === 'live-ip'}
+            onClick={() => setRole('live-ip')}
+          >
+            I&apos;m a LIVE IP / Rightsholder
+          </RoleButton>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-0 overflow-hidden rounded-lg border border-white/[0.08]">
         <ModeButton active={mode === 'login'} onClick={() => reset('login')}>
           I have access
         </ModeButton>
@@ -108,9 +145,21 @@ export function ConnectPanel() {
       </div>
 
       <form
-        onSubmit={submit}
+        onSubmit={submitForm}
         className="mt-6 flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-altr-card p-7"
       >
+        <button
+          type="button"
+          onClick={submitGoogle}
+          disabled={status === 'submitting'}
+          className="flex items-center justify-center gap-3 rounded-lg border border-white/[0.1] bg-white px-6 py-3 text-[13px] font-semibold text-[#1F1F1F] transition hover:bg-white/95 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <GoogleIcon />
+          Continue with Google
+        </button>
+
+        <Divider label="or" />
+
         <FieldLabel htmlFor="auth-email">Business email</FieldLabel>
         <input
           id="auth-email"
@@ -131,46 +180,9 @@ export function ConnectPanel() {
           </p>
         )}
 
-        <Divider
-          label={mode === 'signup' ? '+ also required' : 'or'}
-        />
-
-        {walletAddress ? (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-altr-mint-bright/40 bg-altr-mint/[0.08] px-4 py-3">
-            <div className="flex min-w-0 items-center gap-2.5">
-              <span className="altr-pulse-dot inline-block h-2 w-2 flex-shrink-0 rounded-full bg-altr-lime" />
-              <span className="font-mono text-[13px] text-altr-mint-bright">
-                {maskAddress(walletAddress)}
-              </span>
-              <span className="font-mono text-[10px] uppercase tracking-wider text-altr-text-3">
-                connected
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setWalletAddress(null)}
-              className="font-mono text-[10px] uppercase tracking-wider text-altr-text-3 transition hover:text-altr-white"
-            >
-              Disconnect
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={connectWallet}
-            className="flex items-center justify-center gap-2.5 rounded-lg border border-white/[0.1] bg-altr-bg/60 px-6 py-3 text-[13px] font-medium text-altr-white transition hover:border-altr-mint-bright/40 hover:text-altr-mint-bright"
-          >
-            <WalletIcon />
-            Connect Web3 wallet
-          </button>
-        )}
-
         <button
           type="submit"
-          disabled={
-            status === 'submitting' ||
-            (mode === 'login' ? !canLogin : !canSignup)
-          }
+          disabled={!canSubmitForm}
           className="mt-3 rounded-lg bg-altr-mint px-6 py-3 text-[13px] font-semibold text-altr-white transition hover:bg-altr-mint-bright disabled:cursor-not-allowed disabled:opacity-40"
         >
           {status === 'submitting'
@@ -262,6 +274,30 @@ function ModeButton({
   )
 }
 
+function RoleButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-lg border px-3 py-3 text-center text-[12.5px] font-medium leading-tight transition ${
+        active
+          ? 'border-altr-mint-bright/60 bg-altr-mint/[0.16] text-altr-mint-bright'
+          : 'border-white/[0.08] bg-transparent text-altr-text-2 hover:border-white/[0.16] hover:text-altr-white'
+      }`}
+    >
+      {children}
+    </button>
+  )
+}
+
 function Divider({ label }: { label: string }) {
   return (
     <div className="my-3 flex items-center gap-3">
@@ -274,30 +310,31 @@ function Divider({ label }: { label: string }) {
   )
 }
 
-function WalletIcon() {
+function GoogleIcon() {
   return (
     <svg
-      width="14"
-      height="14"
-      viewBox="0 0 14 14"
-      fill="none"
+      width="16"
+      height="16"
+      viewBox="0 0 18 18"
       aria-hidden
+      className="flex-shrink-0"
     >
-      <rect
-        x="1.5"
-        y="3"
-        width="11"
-        height="8"
-        rx="1.5"
-        stroke="currentColor"
-        strokeWidth="1.2"
+      <path
+        d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"
+        fill="#4285F4"
       />
       <path
-        d="M1.5 5h11"
-        stroke="currentColor"
-        strokeWidth="1.2"
+        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"
+        fill="#34A853"
       />
-      <circle cx="10" cy="8" r="0.8" fill="currentColor" />
+      <path
+        d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"
+        fill="#FBBC05"
+      />
+      <path
+        d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"
+        fill="#EA4335"
+      />
     </svg>
   )
 }

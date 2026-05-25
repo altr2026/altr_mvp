@@ -225,6 +225,7 @@ export type WaitlistSubmission = {
 export type AuthSubmission = {
   email: string
   walletAddress?: string | null
+  role?: WaitlistRole
 }
 
 export type AuthSigninResponse =
