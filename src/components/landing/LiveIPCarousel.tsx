@@ -10,8 +10,8 @@ export function LiveIPCarousel({ rightHolders }: Props) {
     <section id="live-ip" className="px-6 py-16 md:px-8 md:py-24">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 flex items-baseline justify-between gap-4">
-          <h2 className="text-[24px] font-semibold tracking-[-0.025em] md:text-[32px]">
-            Live IP accepting sponsors
+          <h2 className="text-[18px] font-semibold tracking-[-0.02em] md:text-[22px]">
+            Live activations & pop-ups
           </h2>
           <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-altr-text-2">
             {rightHolders.length} active

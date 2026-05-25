@@ -41,7 +41,7 @@ export function Hero({ liveIPCount }: Props) {
             <span className="text-[12.5px] text-altr-text-2">
               Live ·{' '}
               <span className="text-altr-white">
-                {liveIPCount} Live IP accepting sponsors
+                {liveIPCount} live activations & pop-ups
               </span>{' '}
               across ASIA
             </span>

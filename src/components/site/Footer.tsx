@@ -5,7 +5,7 @@ export function Footer() {
   return (
     <footer className="mt-24 border-t border-white/[0.06] px-6 py-14 md:px-8">
       <div className="mx-auto grid max-w-6xl gap-12 md:grid-cols-[1.4fr_repeat(3,1fr)]">
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col items-start gap-3">
           <Image
             src="/altr-logo-white.png"
             alt="altr"
