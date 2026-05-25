@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { DealHeaderBar } from '@/components/demo/DealHeaderBar'
 import {
   BORDER_COLOR,
   DEMO_BRAND,
@@ -9,7 +10,6 @@ import {
   DEMO_STEPS,
   LAYER_COLOR,
   LAYER_LABEL,
-  SUCCESS_COLOR,
 } from '@/lib/demo-flow'
 
 type Props = {
@@ -48,35 +48,16 @@ export function DealPreview({
           ← Back to {ipShort}
         </Link>
 
-        <div className="mt-6 rounded-2xl border border-white/[0.06] bg-altr-card px-6 py-5 md:px-8 md:py-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-8">
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center gap-2.5 md:gap-3">
-                <span className="text-[15px] font-semibold text-altr-white md:text-[17px]">
-                  {DEMO_BRAND}
-                </span>
-                <span className="text-altr-text-3" aria-hidden>
-                  ×
-                </span>
-                <span className="text-[15px] font-semibold text-altr-white md:text-[17px]">
-                  <span className="md:hidden">{ipShort}</span>
-                  <span className="hidden md:inline">{ipName}</span>
-                </span>
-              </div>
-              <div className="hidden items-center gap-3 font-mono text-[10.5px] tracking-[0.15em] text-altr-text-3 uppercase md:flex">
-                <span>{DEMO_BRAND_SUB}</span>
-                <span aria-hidden>·</span>
-                <span>
-                  {ipCity}, {ipCountry}
-                </span>
-              </div>
-            </div>
-
-            <DotTrail
-              currentStep={currentStep}
-              onJump={(n) => setCurrentStep(n)}
-            />
-          </div>
+        <div className="mt-6">
+          <DealHeaderBar
+            currentStep={currentStep}
+            brand={DEMO_BRAND}
+            brandSub={DEMO_BRAND_SUB}
+            ipName={ipName}
+            ipShort={ipShort}
+            ipSub={`${ipCity}, ${ipCountry}`}
+            onJump={(n) => setCurrentStep(n)}
+          />
         </div>
 
         <div className="mt-8 rounded-2xl border border-white/[0.06] bg-altr-card p-7 md:p-10">
@@ -201,116 +182,3 @@ export function DealPreview({
   )
 }
 
-function DotTrail({
-  currentStep,
-  onJump,
-}: {
-  currentStep: number
-  onJump: (n: number) => void
-}) {
-  return (
-    <div className="-mx-2 flex items-start overflow-x-auto px-2 md:mx-0 md:px-0">
-      <div className="flex items-start">
-        {DEMO_STEPS.map((s, idx) => {
-          const isCompleted = s.number < currentStep
-          const isCurrent = s.number === currentStep
-          const isClickable = s.number <= currentStep && s.number >= 4
-          const layerColor = LAYER_COLOR[s.layer]
-          const lineColor =
-            idx > 0 && (DEMO_STEPS[idx - 1].number < currentStep || isCurrent)
-              ? SUCCESS_COLOR
-              : BORDER_COLOR
-
-          return (
-            <div key={s.number} className="flex items-start">
-              {idx > 0 && (
-                <span
-                  aria-hidden
-                  className="mx-0 mt-[10px] block h-px w-5 flex-shrink-0 md:w-7"
-                  style={{ background: lineColor }}
-                />
-              )}
-              <button
-                type="button"
-                onClick={() => isClickable && onJump(s.number)}
-                disabled={!isClickable}
-                className="group flex flex-col items-center gap-1.5 focus:outline-none disabled:cursor-not-allowed"
-                aria-label={`Step ${s.number}: ${s.shortLabel}`}
-              >
-                <Dot
-                  isCompleted={isCompleted}
-                  isCurrent={isCurrent}
-                  layerColor={layerColor}
-                />
-                <span
-                  className="font-mono text-[9px] tracking-[0.15em] uppercase"
-                  style={{
-                    color: isCurrent
-                      ? layerColor
-                      : isCompleted
-                        ? SUCCESS_COLOR
-                        : '#5A5A6A',
-                  }}
-                >
-                  {s.number.toString().padStart(2, '0')}
-                </span>
-              </button>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function Dot({
-  isCompleted,
-  isCurrent,
-  layerColor,
-}: {
-  isCompleted: boolean
-  isCurrent: boolean
-  layerColor: string
-}) {
-  if (isCompleted) {
-    return (
-      <span
-        className="flex h-5 w-5 items-center justify-center rounded-full"
-        style={{ background: SUCCESS_COLOR }}
-      >
-        <svg
-          width="11"
-          height="9"
-          viewBox="0 0 11 9"
-          fill="none"
-          aria-hidden
-        >
-          <path
-            d="M1.5 4.5L4.25 7.25L9.5 1.75"
-            stroke="#0A0A0F"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </span>
-    )
-  }
-  if (isCurrent) {
-    return (
-      <span
-        className="relative inline-flex h-5 w-5 rounded-full"
-        style={{
-          background: layerColor,
-          boxShadow: `0 0 0 4px ${layerColor}40`,
-        }}
-      />
-    )
-  }
-  return (
-    <span
-      className="block h-4 w-4 rounded-full border"
-      style={{ borderColor: BORDER_COLOR }}
-    />
-  )
-}

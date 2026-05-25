@@ -1,3 +1,4 @@
+import { StepShell } from '@/components/demo/StepShell'
 import { GoldenMatch } from '@/components/step3/GoldenMatch'
 
 export const metadata = {
@@ -8,8 +9,8 @@ export const metadata = {
 
 export default function Step3Page() {
   return (
-    <div className="mx-auto w-full max-w-[1120px] px-6 md:px-8">
+    <StepShell currentStep={3}>
       <GoldenMatch />
-    </div>
+    </StepShell>
   )
 }

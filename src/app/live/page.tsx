@@ -1,9 +1,10 @@
 import { StepPlaceholder } from '@/components/demo/StepPlaceholder'
+import { StepShell } from '@/components/demo/StepShell'
 
 export default function Step6Page() {
   return (
-    <div className="mx-auto w-full max-w-[960px] px-10 py-12">
+    <StepShell currentStep={6}>
       <StepPlaceholder step={6} />
-    </div>
+    </StepShell>
   )
 }
