@@ -169,7 +169,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'Consumer mass-market + GCC tourists · Dec 2026 – Jan 2027 · citywide',
     verticals: ['beauty', 'F&B', 'fashion', 'lifestyle'],
-    heroImage: rhImg('shopping,dubai,nightlights', 'dsf-2026'),
+    heroImage: rhImg('shopping,festival,night', 'dsf-2026'),
     availableSlots: [
       {
         id: 'sl_dsf_booth',
@@ -279,7 +279,7 @@ const mockRightHolders: RightHolder[] = [
     audienceProfile:
       'Startups, investors, gov officials · Aug 31 – Sep 3, 2026 · Riyadh Exhibition Centre',
     verticals: ['IP'],
-    heroImage: rhImg('technology,stage,riyadh', 'leap-2026'),
+    heroImage: rhImg('conference,audience,stage', 'leap-2026'),
     availableSlots: [
       {
         id: 'sl_leap_booth',
