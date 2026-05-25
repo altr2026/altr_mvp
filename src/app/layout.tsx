@@ -25,14 +25,6 @@ export const metadata: Metadata = {
       'Live properties get funded. Brands get presence. The AI agent for Live IP × brand match across ASIA.',
     url: 'https://demo.altr.haus',
     siteName: 'ALTR',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'ALTR — Sponsorship OS',
-      },
-    ],
     locale: 'en_US',
     type: 'website',
   },
@@ -41,7 +33,6 @@ export const metadata: Metadata = {
     title: 'ALTR — Sponsorship OS',
     description:
       'Live properties get funded. Brands get presence. The AI agent for Live IP × brand match across ASIA.',
-    images: ['/og-image.png'],
   },
 }
 
