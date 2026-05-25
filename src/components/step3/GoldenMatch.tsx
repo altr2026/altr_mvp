@@ -1,32 +1,13 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import {
-  type BrandProfile,
-  type MatchResult,
-  DEFAULT_BRAND,
-  loadDemoState,
-  MATCH_META,
-  selectedMatch,
-} from '@/lib/demo-state'
+import { useDemoState } from '@/components/providers/DemoStateProvider'
+import { MATCH_META } from '@/lib/demo-state'
 
 export function GoldenMatch() {
   const router = useRouter()
-  const [brand, setBrand] = useState<BrandProfile>(DEFAULT_BRAND)
-  const [match, setMatch] = useState<MatchResult | null>(null)
-  const [missingMatch, setMissingMatch] = useState(false)
-
-  useEffect(() => {
-    const s = loadDemoState()
-    setBrand(s.brand)
-    const m = selectedMatch(s)
-    if (!m) {
-      setMissingMatch(true)
-      return
-    }
-    setMatch(m)
-  }, [])
+  const { state: { brand }, selectedMatch: match, hydrated } = useDemoState()
+  const missingMatch = hydrated && !match
 
   if (missingMatch) {
     return (

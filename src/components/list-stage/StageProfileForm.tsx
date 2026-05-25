@@ -2,12 +2,8 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import {
-  type StageProfile,
-  DEFAULT_STAGE,
-  loadStageState,
-  patchStageState,
-} from '@/lib/stage-state'
+import { useStageState } from '@/components/providers/StageStateProvider'
+import { type StageProfile, DEFAULT_STAGE } from '@/lib/stage-state'
 
 const STAGE_TYPE_SUBS: Record<string, string[]> = {
   'Music festival': ['Pop / mainstream', 'EDM', 'Hip-hop / R&B', 'World music'],
@@ -165,14 +161,12 @@ const PREV_HISTORY = [
 
 export function StageProfileForm() {
   const router = useRouter()
+  const { state: ctxState, hydrated, setStage: commitStage } = useStageState()
   const [stage, setStage] = useState<StageProfile>(DEFAULT_STAGE)
-  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    const s = loadStageState()
-    setStage(s.stage)
-    setHydrated(true)
-  }, [])
+    if (hydrated) setStage(ctxState.stage)
+  }, [hydrated, ctxState.stage])
 
   const update = <K extends keyof StageProfile>(key: K, value: StageProfile[K]) => {
     setStage((s) => ({ ...s, [key]: value }))
@@ -193,7 +187,7 @@ export function StageProfileForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    patchStageState({ stage, screening: null })
+    commitStage(stage)
     router.push('/screen')
   }
 

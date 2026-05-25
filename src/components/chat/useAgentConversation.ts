@@ -1,12 +1,12 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useDemoState } from '@/components/providers/DemoStateProvider'
 import {
   brandProfileToCollected,
   hasCompleteBrand,
   summarizeBrand,
 } from '@/lib/conversation-bridge'
-import { loadDemoState } from '@/lib/demo-state'
 import type {
   AgentTurnRequest,
   AgentTurnResponse,
@@ -36,43 +36,11 @@ const freshState = (): ConversationState => ({
   collected: {},
 })
 
-type SeedSnapshot = {
-  state: ConversationState
-  greeting: string | null
-}
-
-const seedFromLocalStorage = (): SeedSnapshot => {
-  if (typeof window === 'undefined') {
-    return { state: freshState(), greeting: null }
-  }
-  try {
-    // Only seed if the user has actively touched demo state — not on first visit
-    const raw = window.localStorage.getItem('altr_demo_state_v1')
-    if (!raw) return { state: freshState(), greeting: null }
-    const demoState = loadDemoState()
-    if (!hasCompleteBrand(demoState.brand)) {
-      return { state: freshState(), greeting: null }
-    }
-    const collected = brandProfileToCollected(demoState.brand)
-    const matchedRoute = demoState.selectedMatchId ? 'a match' : 'a brief'
-    const summary = summarizeBrand(demoState.brand)
-    const greeting = `I have ${matchedRoute} on file — ${summary}. Ask anything about matches, pricing, setup options, or the post-match deal flow.`
-    return {
-      state: {
-        sessionId: newSessionId(),
-        step: 'results',
-        collected,
-      },
-      greeting,
-    }
-  } catch {
-    return { state: freshState(), greeting: null }
-  }
-}
 
 const randomId = (): string => Math.random().toString(36).slice(2, 12)
 
 export function useAgentConversation(autoStart = true) {
+  const { state: demoState, selectedMatch, hydrated } = useDemoState()
   const [state, setState] = useState<ConversationState>(freshState)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [options, setOptions] = useState<ConversationOption[]>([])
@@ -135,19 +103,27 @@ export function useAgentConversation(autoStart = true) {
   }
 
   useEffect(() => {
-    if (initRanRef.current || !autoStart) return
+    if (initRanRef.current || !autoStart || !hydrated) return
     initRanRef.current = true
-    const seed = seedFromLocalStorage()
-    if (seed.greeting) {
-      setState(seed.state)
-      stateRef.current = seed.state
-      setMessages([{ id: randomId(), role: 'agent', content: seed.greeting }])
+    if (hasCompleteBrand(demoState.brand)) {
+      const collected = brandProfileToCollected(demoState.brand)
+      const matchedRoute = selectedMatch ? 'a match' : 'a brief'
+      const summary = summarizeBrand(demoState.brand)
+      const greeting = `I have ${matchedRoute} on file — ${summary}. Ask anything about matches, pricing, setup options, or the post-match deal flow.`
+      const seeded: ConversationState = {
+        sessionId: newSessionId(),
+        step: 'results',
+        collected,
+      }
+      setState(seeded)
+      stateRef.current = seeded
+      setMessages([{ id: randomId(), role: 'agent', content: greeting }])
       setDone(true)
       return
     }
     void sendInput('')
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoStart])
+  }, [autoStart, hydrated])
 
   const reset = () => {
     window.location.reload()

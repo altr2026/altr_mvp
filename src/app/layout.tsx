@@ -3,6 +3,8 @@ import { Inter, JetBrains_Mono } from 'next/font/google'
 import { FloatingChatWidget } from '@/components/chat/FloatingChatWidget'
 import { BottomNav } from '@/components/demo/BottomNav'
 import { TopBar } from '@/components/demo/TopBar'
+import { DemoStateProvider } from '@/components/providers/DemoStateProvider'
+import { StageStateProvider } from '@/components/providers/StageStateProvider'
 import './globals.css'
 
 const inter = Inter({
@@ -48,10 +50,14 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full`}
     >
       <body className="flex min-h-screen flex-col bg-altr-bg font-sans text-altr-white">
-        <TopBar />
-        <main className="flex flex-1 flex-col">{children}</main>
-        <BottomNav />
-        <FloatingChatWidget />
+        <DemoStateProvider>
+          <StageStateProvider>
+            <TopBar />
+            <main className="flex flex-1 flex-col">{children}</main>
+            <BottomNav />
+            <FloatingChatWidget />
+          </StageStateProvider>
+        </DemoStateProvider>
       </body>
     </html>
   )

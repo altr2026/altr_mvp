@@ -2,12 +2,11 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  type StageProfile,
-  type StageScreening,
-  type StageScreeningResponse,
-  loadStageState,
-  patchStageState,
+import { useStageState } from '@/components/providers/StageStateProvider'
+import type {
+  StageProfile,
+  StageScreening,
+  StageScreeningResponse,
 } from '@/lib/stage-state'
 import { STAGE_LOADING_MESSAGES } from '@/lib/stage-fallback'
 
@@ -24,43 +23,45 @@ const DEMAND_COLOR: Record<
 }
 
 export function StageScreenPage() {
+  const { state: stageCtx, hydrated, setScreening: commitScreening } = useStageState()
   const [phase, setPhase] = useState<Phase>('loading')
   const [screening, setScreening] = useState<StageScreening | null>(null)
-  const [stageName, setStageName] = useState<string>('your stage')
   const [source, setSource] = useState<StageScreeningResponse['source']>('fallback')
   const [messageIdx, setMessageIdx] = useState(0)
   const fetchedRef = useRef(false)
+  const stageName = stageCtx.stage.stageName
 
-  const run = useCallback(async (stage: StageProfile) => {
-    try {
-      const res = await fetch('/api/screen-stage', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(stage),
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = (await res.json()) as StageScreeningResponse
-      setScreening(data.screening)
-      setSource(data.source)
-      patchStageState({ screening: data.screening, submittedAt: new Date().toISOString() })
-      setPhase('ready')
-    } catch {
-      setPhase('error')
-    }
-  }, [])
+  const run = useCallback(
+    async (stage: StageProfile) => {
+      try {
+        const res = await fetch('/api/screen-stage', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(stage),
+        })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = (await res.json()) as StageScreeningResponse
+        setScreening(data.screening)
+        setSource(data.source)
+        commitScreening(data.screening)
+        setPhase('ready')
+      } catch {
+        setPhase('error')
+      }
+    },
+    [commitScreening],
+  )
 
   useEffect(() => {
-    if (fetchedRef.current) return
+    if (!hydrated || fetchedRef.current) return
     fetchedRef.current = true
-    const s = loadStageState()
-    setStageName(s.stage.stageName)
-    if (s.screening) {
-      setScreening(s.screening)
+    if (stageCtx.screening) {
+      setScreening(stageCtx.screening)
       setPhase('ready')
       return
     }
-    void run(s.stage)
-  }, [run])
+    void run(stageCtx.stage)
+  }, [hydrated, stageCtx.stage, stageCtx.screening, run])
 
   useEffect(() => {
     if (phase !== 'loading') return

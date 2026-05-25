@@ -2,11 +2,10 @@
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useDemoState } from '@/components/providers/DemoStateProvider'
 import {
   type BrandProfile,
   DEFAULT_BRAND,
-  loadDemoState,
-  patchDemoState,
 } from '@/lib/demo-state'
 
 const VERTICAL_SUBCATS: Record<string, string[]> = {
@@ -85,14 +84,12 @@ const HISTORIES = ['First time', '1-2 times', '3+ times']
 
 export function BrandProfileForm() {
   const router = useRouter()
+  const { state, hydrated, setBrand: commitBrand } = useDemoState()
   const [brand, setBrand] = useState<BrandProfile>(DEFAULT_BRAND)
-  const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    const s = loadDemoState()
-    setBrand(s.brand)
-    setHydrated(true)
-  }, [])
+    if (hydrated) setBrand(state.brand)
+  }, [hydrated, state.brand])
 
   const update = <K extends keyof BrandProfile>(key: K, value: BrandProfile[K]) => {
     setBrand((b) => ({ ...b, [key]: value }))
@@ -114,7 +111,7 @@ export function BrandProfileForm() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    patchDemoState({ brand, matches: null, selectedMatchId: null })
+    commitBrand(brand)
     router.push('/match')
   }
 

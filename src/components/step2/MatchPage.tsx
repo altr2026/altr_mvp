@@ -3,20 +3,20 @@
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useDemoState } from '@/components/providers/DemoStateProvider'
 import { LOADING_MESSAGES } from '@/lib/match-fallback'
 import {
   type BrandProfile,
   type MatchResponse,
   type MatchResult,
-  loadDemoState,
   MATCH_META,
-  patchDemoState,
 } from '@/lib/demo-state'
 
 type Phase = 'loading' | 'ready' | 'error'
 
 export function MatchPage() {
   const router = useRouter()
+  const { state: demoState, hydrated, setMatches: commitMatches, selectMatch } = useDemoState()
   const [phase, setPhase] = useState<Phase>('loading')
   const [matches, setMatches] = useState<MatchResult[]>([])
   const [source, setSource] = useState<MatchResponse['source']>('fallback')
@@ -24,35 +24,37 @@ export function MatchPage() {
   const [revealedCount, setRevealedCount] = useState(0)
   const fetchedRef = useRef(false)
 
-  const runMatch = useCallback(async (brand: BrandProfile) => {
-    try {
-      const res = await fetch('/api/match', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(brand),
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const data = (await res.json()) as MatchResponse
-      setMatches(data.matches)
-      setSource(data.source)
-      patchDemoState({ matches: data.matches })
-      setPhase('ready')
-    } catch {
-      setPhase('error')
-    }
-  }, [])
+  const runMatch = useCallback(
+    async (brand: BrandProfile) => {
+      try {
+        const res = await fetch('/api/match', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(brand),
+        })
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = (await res.json()) as MatchResponse
+        setMatches(data.matches)
+        setSource(data.source)
+        commitMatches(data.matches)
+        setPhase('ready')
+      } catch {
+        setPhase('error')
+      }
+    },
+    [commitMatches],
+  )
 
   useEffect(() => {
-    if (fetchedRef.current) return
+    if (!hydrated || fetchedRef.current) return
     fetchedRef.current = true
-    const state = loadDemoState()
-    if (state.matches && state.matches.length > 0) {
-      setMatches(state.matches)
+    if (demoState.matches && demoState.matches.length > 0) {
+      setMatches(demoState.matches)
       setPhase('ready')
       return
     }
-    void runMatch(state.brand)
-  }, [runMatch])
+    void runMatch(demoState.brand)
+  }, [hydrated, demoState.brand, demoState.matches, runMatch])
 
   useEffect(() => {
     if (phase !== 'loading') return
@@ -75,7 +77,7 @@ export function MatchPage() {
   }, [phase, matches.length])
 
   const handleSelect = (m: MatchResult) => {
-    patchDemoState({ selectedMatchId: m.id, matchedAt: new Date().toISOString() })
+    selectMatch(m.id)
     router.push('/confirm')
   }
 
