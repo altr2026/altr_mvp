@@ -1,17 +1,19 @@
 import type { Metadata } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
-import { FloatingChatWidget } from '@/components/chat/FloatingChatWidget'
-import { Header } from '@/components/site/Header'
+import { DM_Sans, Space_Mono } from 'next/font/google'
+import { BottomNav } from '@/components/demo/BottomNav'
+import { TopBar } from '@/components/demo/TopBar'
 import './globals.css'
 
-const inter = Inter({
-  variable: '--font-inter',
+const dmSans = DM_Sans({
+  variable: '--font-dm-sans',
   subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
 })
 
-const jetbrainsMono = JetBrains_Mono({
-  variable: '--font-jetbrains',
+const spaceMono = Space_Mono({
+  variable: '--font-space-mono',
   subsets: ['latin'],
+  weight: ['400', '700'],
 })
 
 export const metadata: Metadata = {
@@ -44,12 +46,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full`}
+      className={`${dmSans.variable} ${spaceMono.variable} h-full`}
     >
-      <body className="flex min-h-screen flex-col bg-altr-bg font-sans text-altr-white">
-        <Header />
+      <body className="flex min-h-screen flex-col bg-demo-bg font-sans text-demo-text">
+        <TopBar />
         <main className="flex flex-1 flex-col">{children}</main>
-        <FloatingChatWidget />
+        <BottomNav />
       </body>
     </html>
   )

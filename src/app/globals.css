@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
+  /* Existing altr tokens — preserved */
   --color-altr-black: #08080D;
   --color-altr-white: #FFFFFF;
   --color-altr-bg: #08080D;
@@ -15,14 +16,35 @@
   --color-altr-text-3: #5E5E68;
   --color-altr-cream: #DAD7CB;
 
-  --font-sans: var(--font-inter);
-  --font-mono: var(--font-jetbrains);
+  /* Demo flow tokens */
+  --color-demo-bg: #0A0A0F;
+  --color-demo-surface: #13131A;
+  --color-demo-surface-2: #1A1A24;
+  --color-demo-border: #2A2A3A;
+  --color-demo-border-hover: #3A3A4A;
+  --color-demo-text: #E8E6F0;
+  --color-demo-text-dim: #9896A8;
+  --color-demo-text-faint: #5A5A6A;
+
+  --color-demo-teal: #5DCAA5;
+  --color-demo-teal-dim: #1A2E28;
+  --color-demo-green-light: #A8E6CF;
+  --color-demo-green-light-dim: #1A2E24;
+  --color-demo-amber: #EF9F27;
+  --color-demo-amber-dim: #2E2410;
+
+  --color-demo-success: #4ADE80;
+  --color-demo-pending: #F87171;
+  --color-demo-info: #378ADD;
+
+  --font-sans: var(--font-dm-sans);
+  --font-mono: var(--font-space-mono);
 }
 
 html,
 body {
-  background: var(--color-altr-bg);
-  color: var(--color-altr-white);
+  background: var(--color-demo-bg);
+  color: var(--color-demo-text);
 }
 
 html {
@@ -80,3 +102,16 @@ html {
   animation: altr-fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+@keyframes demo-dot-glow {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.demo-dot-glow {
+  animation: demo-dot-glow 2.4s ease-in-out infinite;
+}

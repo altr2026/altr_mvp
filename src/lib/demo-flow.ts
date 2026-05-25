@@ -2,6 +2,7 @@ export type DemoLayer = 'intelligence' | 'contract' | 'settlement' | 'loop'
 
 export type DemoStep = {
   number: number
+  route: string
   label: string
   shortLabel: string
   layer: DemoLayer
@@ -11,6 +12,7 @@ export type DemoStep = {
 export const DEMO_STEPS: DemoStep[] = [
   {
     number: 1,
+    route: '/',
     label: 'Brand profile',
     shortLabel: 'Profile',
     layer: 'intelligence',
@@ -18,6 +20,7 @@ export const DEMO_STEPS: DemoStep[] = [
   },
   {
     number: 2,
+    route: '/match',
     label: 'Stage matches',
     shortLabel: 'Match',
     layer: 'intelligence',
@@ -25,6 +28,7 @@ export const DEMO_STEPS: DemoStep[] = [
   },
   {
     number: 3,
+    route: '/confirm',
     label: 'Golden match',
     shortLabel: 'Confirm',
     layer: 'intelligence',
@@ -32,6 +36,7 @@ export const DEMO_STEPS: DemoStep[] = [
   },
   {
     number: 4,
+    route: '/contract',
     label: 'Deal terms',
     shortLabel: 'Terms',
     layer: 'contract',
@@ -39,6 +44,7 @@ export const DEMO_STEPS: DemoStep[] = [
   },
   {
     number: 5,
+    route: '/rail',
     label: 'Rail config',
     shortLabel: 'Config',
     layer: 'settlement',
@@ -46,6 +52,7 @@ export const DEMO_STEPS: DemoStep[] = [
   },
   {
     number: 6,
+    route: '/live',
     label: 'Deal live',
     shortLabel: 'Live',
     layer: 'settlement',
@@ -53,6 +60,7 @@ export const DEMO_STEPS: DemoStep[] = [
   },
   {
     number: 7,
+    route: '/settle',
     label: 'Settlement',
     shortLabel: 'Settle',
     layer: 'settlement',
@@ -60,6 +68,7 @@ export const DEMO_STEPS: DemoStep[] = [
   },
   {
     number: 8,
+    route: '/report',
     label: 'ROI report',
     shortLabel: 'Report',
     layer: 'loop',
@@ -83,9 +92,19 @@ export const LAYER_LABEL: Record<DemoLayer, string> = {
 
 export const SUCCESS_COLOR = '#4ADE80'
 export const BORDER_COLOR = '#2A2A3A'
+export const PENDING_COLOR = '#F87171'
 
 export const DEMO_BRAND = 'COSRX'
 export const DEMO_BRAND_SUB = 'K-beauty'
 
+export const stepFromPath = (pathname: string): DemoStep | null =>
+  DEMO_STEPS.find((s) => s.route === pathname) ?? null
+
+export const isStepRoute = (pathname: string): boolean =>
+  DEMO_STEPS.some((s) => s.route === pathname)
+
 export const stepByNumber = (n: number): DemoStep | undefined =>
   DEMO_STEPS.find((s) => s.number === n)
+
+export const showDealTracker = (currentStepNumber: number): boolean =>
+  currentStepNumber >= 3
