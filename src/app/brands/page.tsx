@@ -31,7 +31,7 @@ export default async function BrandsPage() {
             Transparent pricing. Audience data. ROI you can prove. Built for
             brands entering ASIA live stages.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-12 flex flex-wrap items-center gap-3 md:mt-14">
             <Link
               href="/brief"
               className="rounded-lg bg-altr-mint px-6 py-3 text-[13px] font-semibold text-altr-white transition hover:bg-altr-mint-bright"

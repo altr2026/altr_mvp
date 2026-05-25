@@ -31,7 +31,7 @@ export default async function LiveIPPage() {
             List once. Match with vetted brands. Get paid faster — milestone
             payouts in seconds, not weeks.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="mt-12 flex flex-wrap items-center gap-3 md:mt-14">
             <Link
               href="/list-stage"
               className="rounded-lg bg-altr-mint px-6 py-3 text-[13px] font-semibold text-altr-white transition hover:bg-altr-mint-bright"

@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server'
-import { isBusinessEmail } from '@/lib/auth-mock'
+import {
+  isBusinessEmail,
+  isRegisteredEmail,
+  isRegisteredWallet,
+} from '@/lib/auth-mock'
 import type { ApiError, AuthSignupResponse, AuthSubmission } from '@/types'
 
 export async function POST(
@@ -30,6 +34,16 @@ export async function POST(
       {
         ok: false,
         reason: 'Please connect a Web3 wallet to complete sign-up.',
+      },
+      { status: 200 },
+    )
+  }
+
+  if (isRegisteredEmail(email) || isRegisteredWallet(wallet)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        reason: "You're already in the cohort — sign in instead.",
       },
       { status: 200 },
     )

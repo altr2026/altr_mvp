@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useDemoState } from '@/components/providers/DemoStateProvider'
+import { StyledSelect } from '@/components/ui/StyledSelect'
 import {
   type BrandProfile,
   DEFAULT_BRAND,
@@ -315,17 +316,12 @@ function Select({
   onChange: (v: string) => void
 }) {
   return (
-    <select
+    <StyledSelect
       value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={`${inputClass} appearance-none bg-[image:linear-gradient(45deg,transparent_50%,#5A5A6A_50%),linear-gradient(135deg,#5A5A6A_50%,transparent_50%)] bg-[length:5px_5px,5px_5px] bg-[position:calc(100%-15px)_calc(50%-2px),calc(100%-10px)_calc(50%-2px)] bg-no-repeat pr-10`}
-    >
-      {options.map((o) => (
-        <option key={o} value={o} className="bg-demo-surface text-demo-text">
-          {o}
-        </option>
-      ))}
-    </select>
+      options={options}
+      onChange={onChange}
+      triggerClassName={inputClass}
+    />
   )
 }
 

@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server'
-import { isBusinessEmail } from '@/lib/auth-mock'
+import {
+  isBusinessEmail,
+  isRegisteredEmail,
+  isRegisteredWallet,
+} from '@/lib/auth-mock'
 import type { ApiError, AuthSigninResponse, AuthSubmission } from '@/types'
 
 export async function POST(
@@ -19,6 +23,16 @@ export async function POST(
   const wallet = body?.walletAddress?.trim() ?? ''
 
   if (wallet) {
+    if (!isRegisteredWallet(wallet)) {
+      return NextResponse.json(
+        {
+          ok: false,
+          reason:
+            "Wallet isn't on the access list yet. Request access first.",
+        },
+        { status: 200 },
+      )
+    }
     return NextResponse.json(
       {
         ok: true,
@@ -35,6 +49,17 @@ export async function POST(
         ok: false,
         reason:
           'Business email only — no Gmail / Naver / iCloud / Yahoo / etc.',
+      },
+      { status: 200 },
+    )
+  }
+
+  if (!isRegisteredEmail(email)) {
+    return NextResponse.json(
+      {
+        ok: false,
+        reason:
+          "We don't see you on the early-access list yet. Request access first.",
       },
       { status: 200 },
     )

@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import { HeroCTAs } from './HeroCTAs'
 import { HeroHeadline } from './HeroHeadline'
 
 type Props = {
@@ -20,22 +20,9 @@ export function Hero({ liveIPCount }: Props) {
           Live properties get funded. Brands get presence. That&apos;s ALTR.
         </p>
 
-        <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Link
-            href="/brands"
-            className="rounded-lg bg-altr-mint px-6 py-3 text-[13px] font-semibold text-altr-white transition hover:bg-altr-mint-bright"
-          >
-            Browse ALTR Free →
-          </Link>
-          <Link
-            href="#waitlist"
-            className="rounded-lg border border-altr-mint-bright/30 bg-altr-mint/[0.08] px-6 py-3 text-[13px] font-semibold text-altr-mint-bright transition hover:border-altr-mint hover:bg-altr-mint/[0.16]"
-          >
-            Secure your spot
-          </Link>
-        </div>
+        <HeroCTAs />
 
-        <div className="mt-24 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-5 md:mt-32">
+        <div className="mt-24 flex flex-wrap items-center gap-3 border-t border-white/[0.06] pt-5 md:mt-32">
           <div className="flex items-center gap-2.5">
             <span className="altr-pulse-dot inline-block h-2 w-2 rounded-[2px] bg-altr-lime" />
             <span className="text-[12.5px] text-altr-text-2">
@@ -46,12 +33,6 @@ export function Hero({ liveIPCount }: Props) {
               across ASIA
             </span>
           </div>
-          <Link
-            href="#live-ip"
-            className="font-mono text-[10px] uppercase tracking-[0.2em] text-altr-text-2 transition hover:text-altr-lime"
-          >
-            Browse all →
-          </Link>
         </div>
       </div>
     </section>
