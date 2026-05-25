@@ -171,15 +171,20 @@ export function EarlyAccessForm({ initialRole = 'live-ip' }: FormProps = {}) {
       ? 'What activation types can your venue accommodate?'
       : 'How do you want to show up on stage?'
 
+  const heading = role === 'brand' ? 'Post your brief' : 'List your stage'
+  const subheading =
+    role === 'brand'
+      ? 'Tell us about your brand and target market. We surface matching Live IP and reach out as access opens for your region.'
+      : 'Tell us about your stage. We surface matching brands and reach out as access opens for your region.'
+
   return (
     <section id="waitlist" className="px-6 py-16 md:px-8 md:py-24">
       <div className="mx-auto max-w-3xl">
         <h2 className="text-[24px] font-semibold tracking-[-0.025em] md:text-[32px]">
-          Secure your spot
+          {heading}
         </h2>
         <p className="mt-3 max-w-2xl text-[14px] leading-[1.6] text-altr-text-2 md:text-[15px]">
-          Join brands and Live IP shaping the rollout. Tell us a little about
-          you. We will reach out as access opens for your region.
+          {subheading}
         </p>
 
         <form
