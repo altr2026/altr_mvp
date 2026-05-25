@@ -190,11 +190,11 @@ export function EarlyAccessForm({ initialRole = 'live-ip' }: FormProps = {}) {
       ? 'What activation types can your venue accommodate?'
       : 'How do you want to show up on stage?'
 
-  const heading = role === 'brand' ? 'Post your brief' : 'List your stage'
+  const heading = 'Contact Us'
   const subheading =
     role === 'brand'
-      ? 'Tell us about your brand and target market. We surface matching Live IP and reach out as access opens for your region.'
-      : 'Tell us about your stage. We surface matching brands and reach out as access opens for your region.'
+      ? 'Tell us about your brand and target market. We surface matching Live IP and reach out within 48 hours.'
+      : 'Tell us about your stage. We surface matching brands and reach out within 48 hours.'
 
   return (
     <section id="waitlist" className="px-6 py-16 md:px-8 md:py-24">
