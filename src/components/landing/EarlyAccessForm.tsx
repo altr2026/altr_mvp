@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { isBusinessEmail } from '@/lib/auth-mock'
 import type { WaitlistRole, WaitlistSubmission } from '@/types'
@@ -152,13 +153,31 @@ export function EarlyAccessForm({ initialRole = 'live-ip' }: FormProps = {}) {
   if (done) {
     return (
       <section id="waitlist" className="px-6 py-16 md:px-8 md:py-24">
-        <div className="mx-auto max-w-3xl rounded-xl border border-altr-mint-bright/30 bg-altr-mint/[0.06] p-10 text-center">
+        <div className="mx-auto max-w-3xl rounded-xl border border-altr-mint-bright/30 bg-altr-mint/[0.06] p-8 text-center md:p-10">
           <h2 className="text-[24px] font-semibold text-altr-mint-bright md:text-[28px]">
             Thanks. You&apos;re on the list.
           </h2>
           <p className="mt-3 text-[14px] text-altr-text-2">
             We&apos;ll reach out as access opens for your region.
           </p>
+          <p className="mt-6 border-t border-altr-mint-bright/15 pt-6 text-[13.5px] leading-[1.55] text-altr-text-2">
+            Want to see what happens after a match? Walk through the post-match
+            deal lifecycle — terms, settlement rail, milestones, ROI report.
+          </p>
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/deal/preview/gitex-global-2026"
+              className="rounded-lg bg-altr-mint px-5 py-2.5 text-[13px] font-semibold text-altr-white transition hover:bg-altr-mint-bright"
+            >
+              Preview the deal flow →
+            </Link>
+            <Link
+              href="/live-ip"
+              className="rounded-lg border border-white/[0.1] px-5 py-2.5 text-[13px] font-medium text-altr-text-2 transition hover:border-white/[0.2] hover:text-altr-white"
+            >
+              Browse more Live IP
+            </Link>
+          </div>
         </div>
       </section>
     )

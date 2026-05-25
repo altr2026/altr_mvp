@@ -231,7 +231,7 @@ export default async function LiveIPDetailPage({
 
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {slotsSorted.map((slot) => (
-              <SlotCard key={slot.id} slot={slot} />
+              <SlotCard key={slot.id} slot={slot} slug={rh.slug} />
             ))}
           </div>
         </div>
@@ -294,7 +294,7 @@ function Badge({
   )
 }
 
-function SlotCard({ slot }: { slot: AvailableSlot }) {
+function SlotCard({ slot, slug }: { slot: AvailableSlot; slug: string }) {
   const dateRange = formatDateRange(slot.startDate, slot.endDate)
   const formatLabel = FORMAT_LABEL[slot.format]
   return (
@@ -350,7 +350,7 @@ function SlotCard({ slot }: { slot: AvailableSlot }) {
       )}
 
       <Link
-        href="/#waitlist"
+        href={`/deal/preview/${slug}`}
         className="mt-1 inline-flex items-center justify-center rounded-lg border border-altr-mint-bright/30 bg-altr-mint/[0.08] px-4 py-2.5 text-[12.5px] font-semibold text-altr-mint-bright transition hover:border-altr-mint hover:bg-altr-mint/[0.18]"
       >
         Make an offer →
