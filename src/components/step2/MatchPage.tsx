@@ -311,18 +311,36 @@ function MatchCard({
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={onSelect}
-          className={`inline-flex items-center justify-center rounded-lg px-5 py-3 text-[13.5px] font-semibold transition ${
-            isTop
-              ? 'bg-demo-teal text-demo-bg hover:bg-demo-success'
-              : 'border border-demo-border bg-demo-bg/40 text-demo-text-dim hover:border-demo-teal/50 hover:text-demo-teal'
-          }`}
-          style={{ borderWidth: isTop ? 0 : '0.5px' }}
-        >
-          Select this stage →
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onSelect}
+            className={`inline-flex items-center justify-center rounded-lg px-4 py-3 text-[13px] font-semibold transition ${
+              isTop
+                ? 'bg-demo-teal text-demo-bg hover:bg-demo-success'
+                : 'border border-demo-border bg-demo-bg/40 text-demo-text-dim hover:border-demo-teal/50 hover:text-demo-teal'
+            }`}
+            style={{ borderWidth: isTop ? 0 : '0.5px' }}
+          >
+            Select this stage →
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window === 'undefined') return
+              const message = `Tell me about ${meta.shortName} — what setup options fit our brief, and what should we double-check before we commit?`
+              window.dispatchEvent(
+                new CustomEvent('altr:askAgent', {
+                  detail: { stageName: meta.shortName, message },
+                }),
+              )
+            }}
+            className="inline-flex items-center justify-center rounded-lg border border-demo-teal/40 bg-demo-teal-dim px-4 py-3 text-[13px] font-semibold text-demo-teal transition hover:border-demo-teal hover:bg-demo-teal-dim/80"
+            style={{ borderWidth: '0.5px' }}
+          >
+            Ask ALTR →
+          </button>
+        </div>
       </div>
     </article>
   )

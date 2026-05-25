@@ -33,6 +33,24 @@ export function FloatingChatWidget() {
     if (isOpen) bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, isLoading, options, results, isOpen])
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as
+        | { message?: string; stageName?: string }
+        | undefined
+      const wasOpen = isOpen
+      setIsOpen(true)
+      const delay = wasOpen ? 0 : 850
+      window.setTimeout(() => {
+        if (detail?.message) {
+          void sendInput(detail.message, detail.message)
+        }
+      }, delay)
+    }
+    window.addEventListener('altr:askAgent', handler)
+    return () => window.removeEventListener('altr:askAgent', handler)
+  }, [isOpen, sendInput])
+
   if (HIDDEN_ROUTES.includes(pathname)) return null
 
   const handleOptionClick = (opt: ConversationOption) => {
