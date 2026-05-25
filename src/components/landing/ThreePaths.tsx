@@ -15,7 +15,7 @@ const PATHS: Path[] = [
   },
   {
     label: 'For brands',
-    body: 'Every sponsorship in one place, with transparent pricing and audience data.',
+    body: 'Every live stage activation in one place, with transparent pricing and audience data.',
     href: '/chat',
   },
   {

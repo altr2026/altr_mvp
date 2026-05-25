@@ -1,9 +1,5 @@
 import { NextResponse } from 'next/server'
-import {
-  isBusinessEmail,
-  isRegisteredEmail,
-  isRegisteredWallet,
-} from '@/lib/auth-mock'
+import { isBusinessEmail } from '@/lib/auth-mock'
 import type { ApiError, AuthSigninResponse, AuthSubmission } from '@/types'
 
 export async function POST(
@@ -23,21 +19,11 @@ export async function POST(
   const wallet = body?.walletAddress?.trim() ?? ''
 
   if (wallet) {
-    if (isRegisteredWallet(wallet)) {
-      return NextResponse.json(
-        {
-          ok: true,
-          mode: 'wallet',
-          message: 'Wallet recognized. Session token issued.',
-        },
-        { status: 200 },
-      )
-    }
     return NextResponse.json(
       {
-        ok: false,
-        reason:
-          'Wallet not in the cohort. Switch to "I\'m new here" to request access.',
+        ok: true,
+        mode: 'wallet',
+        message: 'Wallet connected. Session token issued.',
       },
       { status: 200 },
     )
@@ -45,17 +31,10 @@ export async function POST(
 
   if (!email || !isBusinessEmail(email)) {
     return NextResponse.json(
-      { ok: false, reason: 'Please use your business email.' },
-      { status: 200 },
-    )
-  }
-
-  if (!isRegisteredEmail(email)) {
-    return NextResponse.json(
       {
         ok: false,
         reason:
-          'Email not in the cohort. Switch to "I\'m new here" to request access.',
+          'Business email only — no Gmail / Naver / iCloud / Yahoo / etc.',
       },
       { status: 200 },
     )
@@ -65,7 +44,7 @@ export async function POST(
     {
       ok: true,
       mode: 'magic-link',
-      message: 'Magic link sent. Check your inbox to finish signing in.',
+      message: `Magic link sent to ${email}. Check your inbox to finish signing in.`,
     },
     { status: 200 },
   )

@@ -10,7 +10,7 @@ import { getRightHolders } from '@/lib/mock-data'
 export const metadata = {
   title: 'For brands — ALTR',
   description:
-    'Every sponsorship in one place. Transparent pricing, verified audience data, and ROI you can prove across ASIA.',
+    'Every live stage activation in one place. Transparent pricing, verified audience data, and ROI you can prove across ASIA.',
 }
 
 export default async function BrandsPage() {
@@ -24,7 +24,7 @@ export default async function BrandsPage() {
             For Brands
           </span>
           <h1 className="mt-7 max-w-4xl text-[26px] font-semibold leading-[1.08] tracking-[-0.035em] md:text-[34px] lg:text-[44px] lg:tracking-[-0.045em]">
-            Every sponsorship{' '}
+            Every live stage activation{' '}
             <span className="text-altr-mint">in one place.</span>
           </h1>
           <p className="mt-3 max-w-2xl text-[13px] leading-[1.5] text-altr-text-2 md:mt-4 md:text-[14px]">

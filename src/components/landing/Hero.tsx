@@ -31,7 +31,7 @@ export function Hero({ liveIPCount }: Props) {
             href="#waitlist"
             className="rounded-lg border border-altr-mint-bright/30 bg-altr-mint/[0.08] px-6 py-3 text-[13px] font-semibold text-altr-mint-bright transition hover:border-altr-mint hover:bg-altr-mint/[0.16]"
           >
-            Get Early Access
+            Secure your spot
           </Link>
         </div>
 

@@ -24,8 +24,8 @@ export default async function LiveIPPage() {
             For LIVE IP / Rightsholders
           </span>
           <h1 className="mt-7 max-w-4xl text-[26px] font-semibold leading-[1.08] tracking-[-0.035em] md:text-[34px] lg:text-[44px] lg:tracking-[-0.045em]">
-            Your sponsorship desk,{' '}
-            <span className="text-altr-mint">simplified.</span>
+            The brands that fit your audience{' '}
+            <span className="text-altr-mint">are already looking.</span>
           </h1>
           <p className="mt-3 max-w-2xl text-[13px] leading-[1.5] text-altr-text-2 md:mt-4 md:text-[14px]">
             List once. Match with vetted brands. Get paid faster — milestone
@@ -42,7 +42,7 @@ export default async function LiveIPPage() {
               href="#waitlist"
               className="rounded-lg border border-altr-mint-bright/30 bg-altr-mint/[0.08] px-6 py-3 text-[13px] font-semibold text-altr-mint-bright transition hover:border-altr-mint hover:bg-altr-mint/[0.16]"
             >
-              Get early access
+              Secure your spot
             </Link>
           </div>
         </div>

@@ -119,7 +119,7 @@ export default async function LiveIPDetailPage({
             sizes="100vw"
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-altr-bg from-5% via-altr-bg/85 via-50% to-altr-bg/30 to-100%" />
+          <div className="absolute inset-0 bg-gradient-to-t from-altr-bg from-45% via-altr-bg/92 via-70% to-altr-bg/35 to-100%" />
         </div>
 
         <div className="-mt-32 px-6 md:-mt-44 md:px-8">
@@ -141,7 +141,7 @@ export default async function LiveIPDetailPage({
               <Badge tone="text">{rh.region}</Badge>
             </div>
 
-            <h1 className="mt-5 max-w-4xl text-[28px] font-semibold leading-[1.08] tracking-[-0.03em] text-altr-white md:text-[40px] lg:text-[48px] lg:tracking-[-0.035em]">
+            <h1 className="mt-5 max-w-4xl text-[28px] font-semibold leading-[1.08] tracking-[-0.03em] text-altr-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.85)] md:text-[40px] lg:text-[48px] lg:tracking-[-0.035em]">
               {rh.name}
             </h1>
 
@@ -254,7 +254,7 @@ export default async function LiveIPDetailPage({
                 href="/#waitlist"
                 className="rounded-lg bg-altr-mint px-5 py-2.5 text-[13px] font-semibold text-altr-white transition hover:bg-altr-mint-bright"
               >
-                Get early access →
+                Secure your spot →
               </Link>
               <Link
                 href="/live-ip"

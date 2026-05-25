@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { isBusinessEmail } from '@/lib/auth-mock'
 import type { ApiError, WaitlistSubmission } from '@/types'
 
 type WaitlistAck = { ok: true; receivedAt: string }
@@ -20,6 +21,16 @@ export async function POST(
     return NextResponse.json(
       { error: 'Missing email, role, or orgName' },
       { status: 400 },
+    )
+  }
+
+  if (!isBusinessEmail(body.email)) {
+    return NextResponse.json(
+      {
+        error:
+          'Please use a business email (no Gmail / Naver / iCloud / etc.). This helps us verify brand and Live IP partners.',
+      },
+      { status: 422 },
     )
   }
 

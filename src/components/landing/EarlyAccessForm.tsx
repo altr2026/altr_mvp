@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { isBusinessEmail } from '@/lib/auth-mock'
 import type { WaitlistRole, WaitlistSubmission } from '@/types'
 
 const VERTICALS_BRAND = [
@@ -95,9 +96,19 @@ export function EarlyAccessForm({ initialRole = 'live-ip' }: FormProps = {}) {
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const emailFilled = email.trim().length > 0
+  const emailIsBusiness = emailFilled && isBusinessEmail(email)
+  const emailShowsError = emailFilled && !emailIsBusiness
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (submitting) return
+    if (!emailIsBusiness) {
+      setError(
+        'Business email only — no Gmail / Naver / iCloud / Yahoo / etc.',
+      )
+      return
+    }
     setSubmitting(true)
     setError(null)
     const submission: WaitlistSubmission = {
@@ -119,10 +130,20 @@ export function EarlyAccessForm({ initialRole = 'live-ip' }: FormProps = {}) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(submission),
       })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      if (!res.ok) {
+        const data = (await res.json().catch(() => null)) as
+          | { error?: string }
+          | null
+        const msg = data?.error ?? `HTTP ${res.status}`
+        throw new Error(msg)
+      }
       setDone(true)
-    } catch {
-      setError('Submission failed. Try again or email hello@altr.haus.')
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Submission failed. Try again or email hello@altr.haus.',
+      )
     } finally {
       setSubmitting(false)
     }
@@ -154,7 +175,7 @@ export function EarlyAccessForm({ initialRole = 'live-ip' }: FormProps = {}) {
     <section id="waitlist" className="px-6 py-16 md:px-8 md:py-24">
       <div className="mx-auto max-w-3xl">
         <h2 className="text-[24px] font-semibold tracking-[-0.025em] md:text-[32px]">
-          Early access
+          Secure your spot
         </h2>
         <p className="mt-3 max-w-2xl text-[14px] leading-[1.6] text-altr-text-2 md:text-[15px]">
           Join brands and Live IP shaping the rollout. Tell us a little about
@@ -181,14 +202,26 @@ export function EarlyAccessForm({ initialRole = 'live-ip' }: FormProps = {}) {
             </RoleButton>
           </div>
 
-          <Field
-            label="Email"
-            value={email}
-            onChange={setEmail}
-            type="email"
-            required
-            placeholder="you@org.com"
-          />
+          <div className="flex flex-col gap-2">
+            <FieldLabel>Business email</FieldLabel>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="you@company.com"
+              className={`rounded-lg border bg-altr-bg/60 px-4 py-3 text-[14px] text-altr-white placeholder:text-altr-text-3 focus:outline-none ${
+                emailShowsError
+                  ? 'border-red-500/50 focus:border-red-500/70'
+                  : 'border-white/[0.08] focus:border-altr-mint-bright/60'
+              }`}
+            />
+            {emailShowsError && (
+              <p className="text-[12px] text-red-400">
+                Business email only — no Gmail / Naver / iCloud / Yahoo / etc.
+              </p>
+            )}
+          </div>
 
           <Field
             label={role === 'live-ip' ? 'Live IP name' : 'Brand name'}
@@ -286,10 +319,10 @@ export function EarlyAccessForm({ initialRole = 'live-ip' }: FormProps = {}) {
 
           <button
             type="submit"
-            disabled={submitting || !email || !orgName}
+            disabled={submitting || !emailIsBusiness || !orgName}
             className="mt-2 rounded-lg bg-altr-mint px-6 py-3.5 text-[14px] font-semibold text-altr-white transition hover:bg-altr-mint-bright disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {submitting ? 'Submitting…' : 'Request early access'}
+            {submitting ? 'Submitting…' : 'Secure my spot'}
           </button>
 
           <p className="text-[12px] text-altr-text-3">
