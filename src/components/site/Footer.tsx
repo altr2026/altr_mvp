@@ -9,7 +9,7 @@ export function Footer() {
           <Image
             src="/altr-logo-white.png"
             alt="altr"
-            width={88}
+            width={64}
             height={22}
             className="h-[22px] w-auto"
           />
