@@ -15,6 +15,7 @@ const HIDDEN_ROUTES = ['/chat']
 export function FloatingChatWidget() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const [inputValue, setInputValue] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
 
   const {
@@ -35,9 +36,19 @@ export function FloatingChatWidget() {
   if (HIDDEN_ROUTES.includes(pathname)) return null
 
   const handleOptionClick = (opt: ConversationOption) => {
-    if (done || isLoading) return
+    if (isLoading) return
     void sendInput(opt.value, opt.label)
   }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = inputValue.trim()
+    if (!trimmed || isLoading) return
+    setInputValue('')
+    void sendInput(trimmed, trimmed)
+  }
+
+  const isConciergeMode = done
 
   return (
     <>
@@ -78,31 +89,59 @@ export function FloatingChatWidget() {
               ALTR Agent
             </span>
             <span className="hidden font-mono text-[9px] tracking-[0.2em] text-altr-text-3 uppercase sm:inline">
-              Step 01 · narrow down
+              {isConciergeMode ? 'Concierge · ask anything' : 'Step 01 · narrow down'}
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => setIsOpen(false)}
-            aria-label="Close ALTR agent"
-            className="rounded-md p-1 text-altr-text-2 transition hover:bg-white/[0.06] hover:text-altr-white"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden
+          <div className="flex items-center gap-1">
+            {done && (
+              <button
+                type="button"
+                onClick={reset}
+                aria-label="Start over"
+                title="Start over"
+                className="rounded-md p-1 text-altr-text-2 transition hover:bg-white/[0.06] hover:text-altr-mint-bright"
+              >
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden
+                >
+                  <path
+                    d="M3 8a5 5 0 1 1 1.46 3.54M3 13v-3h3"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={() => setIsOpen(false)}
+              aria-label="Close ALTR agent"
+              className="rounded-md p-1 text-altr-text-2 transition hover:bg-white/[0.06] hover:text-altr-white"
             >
-              <path
-                d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </button>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden
+              >
+                <path
+                  d="M3.5 3.5L12.5 12.5M12.5 3.5L3.5 12.5"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-4 py-4">
@@ -122,18 +161,50 @@ export function FloatingChatWidget() {
                 compact
               />
             )}
-            {done && (
-              <button
-                type="button"
-                onClick={reset}
-                className="self-start rounded-lg border border-white/[0.1] px-3 py-2 font-mono text-[10px] tracking-[0.22em] text-altr-text-2 uppercase transition hover:border-altr-mint-bright/50 hover:text-altr-mint-bright"
-              >
-                ↻ start over
-              </button>
-            )}
             <div ref={bottomRef} />
           </div>
         </div>
+
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-shrink-0 items-center gap-2 border-t border-white/[0.06] bg-altr-bg/40 px-3 py-3"
+        >
+          <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder={
+              isConciergeMode
+                ? 'Ask about pricing, audience, fit…'
+                : 'Type your answer or ask anything…'
+            }
+            disabled={isLoading}
+            className="flex-1 rounded-lg border border-white/[0.08] bg-altr-bg/60 px-3 py-2 text-[13px] text-altr-white placeholder:text-altr-text-3 focus:border-altr-mint-bright/50 focus:outline-none disabled:opacity-50"
+          />
+          <button
+            type="submit"
+            disabled={isLoading || !inputValue.trim()}
+            aria-label="Send"
+            className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-altr-mint text-altr-white transition hover:bg-altr-mint-bright disabled:bg-altr-mint/40"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden
+            >
+              <path
+                d="M3 8h10M9 4l4 4-4 4"
+                stroke="currentColor"
+                strokeWidth="1.75"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </form>
       </div>
     </>
   )

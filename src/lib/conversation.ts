@@ -271,13 +271,27 @@ export async function runAgentTurn(
     }
 
     case 'narrowing':
-    case 'results':
+    case 'results': {
+      if (!trimmed) {
+        return {
+          state,
+          reply:
+            "Concierge mode — ask about pricing, audience, formats, or any event you saw. ↻ resets the search.",
+          done: true,
+        }
+      }
+      const llm = await tryLLMFallback(
+        trimmed,
+        "Concierge mode after a brand has been matched with Live IP across ASIA. The user is reading event detail pages and asking follow-up questions about pricing, audience, sponsorship formats, RS terms, or specific events (GITEX, F1 Abu Dhabi, Frieze Abu Dhabi, Art Dubai, DSF, Global Village, Dubai World Cup, LEAP, Ataya, Sharjah Triennial, Emirates LitFest, WHX). Answer with concrete numbers when helpful.",
+      )
       return {
         state,
         reply:
-          "We've already narrowed this round. Reset to start a new search.",
+          llm ??
+          "I'd answer that in concierge mode — but the LLM key isn't wired yet. Drop a note via the early-access form and we'll reply within 24h.",
         done: true,
       }
+    }
   }
 }
 

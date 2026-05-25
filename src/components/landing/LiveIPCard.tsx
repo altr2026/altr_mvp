@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import type { RightHolder } from '@/types'
 
 const TYPE_LABEL: Record<RightHolder['type'], string> = {
@@ -58,9 +59,13 @@ export function LiveIPCard({ rightHolder: rh }: Props) {
   const starts = rh.availableSlots.map((s) => s.startDate).sort()
   const ends = rh.availableSlots.map((s) => s.endDate).sort()
   const dateRange = formatDateRange(starts[0], ends[ends.length - 1])
+  const keywords = (rh.keywords ?? []).slice(0, 3)
 
   return (
-    <article className="group relative aspect-[4/5] overflow-hidden rounded-2xl border border-white/[0.06] bg-altr-card transition hover:border-altr-mint-bright/40">
+    <Link
+      href={`/live-ip/${rh.slug}`}
+      className="group relative block aspect-[4/5] overflow-hidden rounded-2xl border border-white/[0.06] bg-altr-card transition hover:border-altr-mint-bright/40 focus-visible:border-altr-mint-bright focus-visible:outline-none"
+    >
       <Image
         src={rh.heroImage}
         alt={rh.name}
@@ -69,7 +74,7 @@ export function LiveIPCard({ rightHolder: rh }: Props) {
         className="object-cover transition duration-700 group-hover:scale-[1.04]"
       />
 
-      <div className="absolute inset-0 bg-gradient-to-t from-altr-bg from-5% via-altr-bg/85 via-40% to-altr-bg/0 to-65%" />
+      <div className="absolute inset-0 bg-gradient-to-t from-altr-bg from-5% via-altr-bg/90 via-45% to-altr-bg/0 to-70%" />
 
       <div className="absolute top-4 left-4 flex gap-1.5">
         <span className="rounded bg-altr-bg/85 px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-altr-white backdrop-blur">
@@ -86,7 +91,19 @@ export function LiveIPCard({ rightHolder: rh }: Props) {
         </span>
       </div>
 
-      <div className="absolute right-5 bottom-5 left-5 flex flex-col gap-2">
+      <div className="absolute right-5 bottom-5 left-5 flex flex-col gap-2.5">
+        {keywords.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {keywords.map((kw) => (
+              <span
+                key={kw}
+                className="rounded-full border border-white/[0.12] bg-altr-bg/70 px-2 py-0.5 font-mono text-[9.5px] tracking-wider text-altr-text-2 uppercase backdrop-blur"
+              >
+                {kw}
+              </span>
+            ))}
+          </div>
+        )}
         <h3 className="text-[18px] leading-[1.2] font-semibold tracking-[-0.01em] text-altr-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)] md:text-[20px]">
           {rh.name}
         </h3>
@@ -114,6 +131,12 @@ export function LiveIPCard({ rightHolder: rh }: Props) {
           </div>
         </div>
       </div>
-    </article>
+
+      <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-2">
+        <span className="translate-y-2 rounded-full bg-altr-mint/90 px-3 py-1 font-mono text-[10px] tracking-[0.18em] text-altr-bg uppercase opacity-0 backdrop-blur transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+          View details →
+        </span>
+      </div>
+    </Link>
   )
 }

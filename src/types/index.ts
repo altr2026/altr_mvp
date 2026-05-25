@@ -31,6 +31,10 @@ export type AvailableSlot = {
   format: 'pop-up' | 'booth' | 'concert-tier' | 'main-stage'
   baseRate: number
   rsAvailable: boolean
+  tierName?: string
+  tierTagline?: string
+  availability?: string
+  includes?: string[]
 }
 
 export type RightHolder = {
@@ -47,6 +51,9 @@ export type RightHolder = {
   verticals: Vertical[]
   heroImage: string
   availableSlots: AvailableSlot[]
+  tagline?: string
+  keywords?: string[]
+  audienceHighlights?: string[]
 }
 
 export type Brand = {
