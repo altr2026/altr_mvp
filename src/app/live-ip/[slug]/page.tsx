@@ -298,7 +298,7 @@ function SlotCard({ slot, slug }: { slot: AvailableSlot; slug: string }) {
   const dateRange = formatDateRange(slot.startDate, slot.endDate)
   const formatLabel = FORMAT_LABEL[slot.format]
   return (
-    <article className="flex flex-col gap-4 rounded-2xl border border-white/[0.07] bg-altr-card p-6 transition hover:border-altr-mint-bright/40">
+    <article className="flex h-full flex-col gap-4 rounded-2xl border border-white/[0.07] bg-altr-card p-6 transition hover:border-altr-mint-bright/40">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
           <span className="font-mono text-[10px] tracking-[0.2em] text-altr-mint-bright uppercase">
@@ -349,12 +349,20 @@ function SlotCard({ slot, slug }: { slot: AvailableSlot; slug: string }) {
         </ul>
       )}
 
-      <Link
-        href={`/deal/preview/${slug}`}
-        className="mt-1 inline-flex items-center justify-center rounded-lg border border-altr-mint-bright/30 bg-altr-mint/[0.08] px-4 py-2.5 text-[12.5px] font-semibold text-altr-mint-bright transition hover:border-altr-mint hover:bg-altr-mint/[0.18]"
-      >
-        Make an offer →
-      </Link>
+      <div className="mt-auto grid grid-cols-2 gap-2 pt-1">
+        <Link
+          href="/#waitlist"
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-white/[0.1] bg-altr-bg/40 px-3 text-[12.5px] font-semibold text-altr-text-2 transition hover:border-white/[0.2] hover:text-altr-white"
+        >
+          Contact request
+        </Link>
+        <Link
+          href={`/deal/preview/${slug}`}
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-altr-mint-bright/30 bg-altr-mint/[0.08] px-3 text-[12.5px] font-semibold text-altr-mint-bright transition hover:border-altr-mint hover:bg-altr-mint/[0.18]"
+        >
+          Make an offer →
+        </Link>
+      </div>
     </article>
   )
 }
