@@ -1,3 +1,4 @@
+import { StepShell } from '@/components/demo/StepShell'
 import { BrandProfileForm } from '@/components/step1/BrandProfileForm'
 
 export const metadata = {
@@ -8,8 +9,8 @@ export const metadata = {
 
 export default function BriefStep1Page() {
   return (
-    <div className="mx-auto w-full max-w-[1120px] px-6 py-10 md:px-8 md:py-12">
+    <StepShell currentStep={1}>
       <BrandProfileForm />
-    </div>
+    </StepShell>
   )
 }

@@ -1,3 +1,4 @@
+import { StepShell } from '@/components/demo/StepShell'
 import { MatchPage } from '@/components/step2/MatchPage'
 
 export const metadata = {
@@ -8,8 +9,8 @@ export const metadata = {
 
 export default function Step2Page() {
   return (
-    <div className="mx-auto w-full max-w-[960px] px-6 py-10 md:px-8 md:py-12">
+    <StepShell currentStep={2}>
       <MatchPage />
-    </div>
+    </StepShell>
   )
 }

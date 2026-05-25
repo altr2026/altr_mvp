@@ -10,10 +10,10 @@ import {
 
 type Props = {
   currentStep: number
-  brand: string
+  brand?: string
   brandSub?: string
-  ipName: string
-  ipShort: string
+  ipName?: string
+  ipShort?: string
   ipSub?: string
   onJump?: (n: number) => void
 }
@@ -27,30 +27,43 @@ export function DealHeaderBar({
   ipSub,
   onJump,
 }: Props) {
+  const hasIdentity = Boolean(brand || ipName)
+  const justifyClass = hasIdentity ? 'md:justify-between' : 'md:justify-end'
+
   return (
     <div className="rounded-2xl border border-white/[0.06] bg-altr-card px-5 py-5 md:px-7 md:py-6">
-      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-8">
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center gap-2.5 md:gap-3">
-            <span className="text-[15px] font-semibold text-altr-white md:text-[17px]">
-              {brand}
-            </span>
-            <span className="text-altr-text-3" aria-hidden>
-              ×
-            </span>
-            <span className="text-[15px] font-semibold text-altr-white md:text-[17px]">
-              <span className="md:hidden">{ipShort}</span>
-              <span className="hidden md:inline">{ipName}</span>
-            </span>
-          </div>
-          {(brandSub || ipSub) && (
-            <div className="hidden items-center gap-3 font-mono text-[10.5px] tracking-[0.15em] text-altr-text-3 uppercase md:flex">
-              {brandSub && <span>{brandSub}</span>}
-              {brandSub && ipSub && <span aria-hidden>·</span>}
-              {ipSub && <span>{ipSub}</span>}
+      <div
+        className={`flex flex-col gap-5 md:flex-row md:items-center md:gap-8 ${justifyClass}`}
+      >
+        {hasIdentity && (
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2.5 md:gap-3">
+              {brand && (
+                <span className="text-[15px] font-semibold text-altr-white md:text-[17px]">
+                  {brand}
+                </span>
+              )}
+              {brand && ipName && (
+                <span className="text-altr-text-3" aria-hidden>
+                  ×
+                </span>
+              )}
+              {ipName && (
+                <span className="text-[15px] font-semibold text-altr-white md:text-[17px]">
+                  <span className="md:hidden">{ipShort ?? ipName}</span>
+                  <span className="hidden md:inline">{ipName}</span>
+                </span>
+              )}
             </div>
-          )}
-        </div>
+            {(brandSub || ipSub) && (
+              <div className="hidden items-center gap-3 font-mono text-[10.5px] tracking-[0.15em] text-altr-text-3 uppercase md:flex">
+                {brandSub && <span>{brandSub}</span>}
+                {brandSub && ipSub && <span aria-hidden>·</span>}
+                {ipSub && <span>{ipSub}</span>}
+              </div>
+            )}
+          </div>
+        )}
 
         <DotTrail currentStep={currentStep} onJump={onJump} />
       </div>
