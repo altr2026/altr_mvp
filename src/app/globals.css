@@ -37,14 +37,14 @@
   --color-demo-pending: #F87171;
   --color-demo-info: #378ADD;
 
-  --font-sans: var(--font-dm-sans);
-  --font-mono: var(--font-space-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains);
 }
 
 html,
 body {
-  background: var(--color-demo-bg);
-  color: var(--color-demo-text);
+  background: var(--color-altr-bg);
+  color: var(--color-altr-white);
 }
 
 html {

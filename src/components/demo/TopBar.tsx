@@ -1,15 +1,15 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { Header } from '@/components/site/Header'
 import { showDealTracker, stepFromPath } from '@/lib/demo-flow'
 import { DealTracker } from './DealTracker'
-import { TopNav } from './TopNav'
 
 export function TopBar() {
   const pathname = usePathname()
   const step = stepFromPath(pathname)
 
-  if (!step) return <TopNav />
-  if (!showDealTracker(step.number)) return <TopNav />
+  if (!step) return <Header />
+  if (!showDealTracker(step.number)) return <Header />
   return <DealTracker currentStep={step.number} />
 }
