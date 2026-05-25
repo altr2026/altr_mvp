@@ -314,6 +314,35 @@ function MatchCard({
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"
+            onClick={() => {
+              if (typeof window === 'undefined') return
+              const message = `Let's lock setup details for ${meta.shortName} before we commit. Please confirm:
+
+1. Activation format — Pop-up / Booth / Sampling / Lounge?
+2. Space size — Small (9m²) / Medium (18m²) / Large (36m²)?
+3. Staff — Self-operated or local staff needed?
+4. Exclusivity — do you need vertical exclusivity in your zone?
+5. Settlement — RS only, fixed-fee only, or hybrid?
+6. Duration — days, weeks, or the full event window?
+
+Tell me your preference on each (any order) and ask me anything you want clarified.`
+              window.dispatchEvent(
+                new CustomEvent('altr:askAgent', {
+                  detail: {
+                    stageName: meta.shortName,
+                    message,
+                    intent: 'setup-align',
+                  },
+                }),
+              )
+            }}
+            className="inline-flex items-center justify-center rounded-lg border border-demo-teal/40 bg-demo-teal-dim px-4 py-3 text-[13px] font-semibold text-demo-teal transition hover:border-demo-teal hover:bg-demo-teal-dim/80"
+            style={{ borderWidth: '0.5px' }}
+          >
+            More details to align
+          </button>
+          <button
+            type="button"
             onClick={onSelect}
             className={`inline-flex items-center justify-center rounded-lg px-4 py-3 text-[13px] font-semibold transition ${
               isTop
@@ -323,22 +352,6 @@ function MatchCard({
             style={{ borderWidth: isTop ? 0 : '0.5px' }}
           >
             Select this stage →
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (typeof window === 'undefined') return
-              const message = `Tell me about ${meta.shortName} — what setup options fit our brief, and what should we double-check before we commit?`
-              window.dispatchEvent(
-                new CustomEvent('altr:askAgent', {
-                  detail: { stageName: meta.shortName, message },
-                }),
-              )
-            }}
-            className="inline-flex items-center justify-center rounded-lg border border-demo-teal/40 bg-demo-teal-dim px-4 py-3 text-[13px] font-semibold text-demo-teal transition hover:border-demo-teal hover:bg-demo-teal-dim/80"
-            style={{ borderWidth: '0.5px' }}
-          >
-            Ask ALTR →
           </button>
         </div>
       </div>
