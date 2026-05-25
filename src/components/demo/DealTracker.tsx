@@ -107,7 +107,7 @@ function DotTrail({ currentStep }: { currentStep: number }) {
               {idx > 0 && (
                 <span
                   aria-hidden
-                  className="mx-0 mt-[10px] block h-px w-6 flex-shrink-0 md:w-10"
+                  className="mx-0 mt-[10px] block h-px w-10 flex-shrink-0 md:w-16 lg:w-20"
                   style={{ background: lineColor }}
                 />
               )}
@@ -155,7 +155,7 @@ function DotWithLabel({
         layerColor={layerColor}
       />
       <span
-        className="font-mono text-[9px] tracking-[0.15em] uppercase"
+        className="font-mono text-[9.5px] tracking-[0.15em] uppercase"
         style={{
           color: isCurrent
             ? layerColor
@@ -167,7 +167,7 @@ function DotWithLabel({
         {stepNumber.toString().padStart(2, '0')}
       </span>
       <span
-        className="hidden font-mono text-[8.5px] tracking-[0.18em] uppercase md:block"
+        className="font-mono text-[9.5px] font-medium tracking-[0.14em] uppercase"
         style={{
           color: isCurrent
             ? layerColor
