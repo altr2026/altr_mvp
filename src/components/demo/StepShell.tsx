@@ -42,17 +42,17 @@ export function StepShell({ currentStep, children }: Props) {
     }
   }, [])
 
-  const includeIdentity = currentStep >= 3 && hasMatch
+  const includeIP = currentStep >= 3 && hasMatch
 
   return (
     <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-8 px-6 py-8 md:px-8 md:py-10">
       <DealHeaderBar
         currentStep={currentStep}
-        brand={includeIdentity ? brandName : undefined}
-        brandSub={includeIdentity ? vertical : undefined}
-        ipName={includeIdentity ? ip.name : undefined}
-        ipShort={includeIdentity ? ip.short : undefined}
-        ipSub={includeIdentity ? ip.sub : undefined}
+        brand={brandName}
+        brandSub={vertical}
+        ipName={includeIP ? ip.name : undefined}
+        ipShort={includeIP ? ip.short : undefined}
+        ipSub={includeIP ? ip.sub : undefined}
       />
       {children}
     </div>
