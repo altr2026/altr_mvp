@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { StepFooter } from '@/components/demo/StepFooter'
 import { StepShell } from '@/components/demo/StepShell'
@@ -10,6 +10,9 @@ import {
   type BrandProfile,
   type MatchMeta,
 } from '@/lib/demo-state'
+import type { WaitlistRole } from '@/types'
+
+const ROLE_STORAGE_KEY = 'altr_demo_role'
 
 function homeCurrency(brand: BrandProfile): string {
   const first = brand.currentMarkets[0] ?? 'Korea'
@@ -136,6 +139,29 @@ function RailLayer() {
     ? MATCH_META[selectedMatch.id]
     : MATCH_META.frieze
 
+  const [role, setRole] = useState<WaitlistRole>('brand')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const stored = window.localStorage.getItem(ROLE_STORAGE_KEY)
+      if (stored === 'brand' || stored === 'live-ip') setRole(stored)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  const updateRole = (next: WaitlistRole) => {
+    setRole(next)
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(ROLE_STORAGE_KEY, next)
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+
   const sponsorshipUsd = useMemo(
     () => parseMaxBudget(brand.budgetRange),
     [brand.budgetRange],
@@ -149,13 +175,12 @@ function RailLayer() {
   const sponsorAtEscrow = sponsorAfterWise // Circle is 1:1, free
   const sponsorAtLiveIp = sponsorAtEscrow * 0.997 // Ripple -0.3% to AED
 
-  // Stream B: revenue share (RS deal only)
-  const posTotalUsd = sponsorshipUsd * POS_REVENUE_MULTIPLE // ≈ $200K
-  const rsToBrandUsd = posTotalUsd * (rsRatio / 100) // ≈ $30K
-  const liveIpRetainedUsd = posTotalUsd - rsToBrandUsd // ≈ $170K
-  const rsToBrandAfterRipple = rsToBrandUsd * 0.997 // -0.3%
+  // RS totals (cumulative — live mechanics shown on /live, not here)
+  const posTotalUsd = sponsorshipUsd * POS_REVENUE_MULTIPLE
+  const rsToBrandUsd = posTotalUsd * (rsRatio / 100)
+  const liveIpRetainedUsd = posTotalUsd - rsToBrandUsd
+  const rsToBrandAfterRipple = rsToBrandUsd * 0.997
 
-  // ALTR transaction-fee revenue across both streams (0.4%)
   const altrTxFeesUsd =
     sponsorshipUsd * 0.004 + rsToBrandUsd * 0.004
 
@@ -165,14 +190,17 @@ function RailLayer() {
   return (
     <div className="px-6 pb-24 pt-6 md:px-8">
       <div className="mx-auto max-w-6xl">
-        <Header brand={brand} matchMeta={matchMeta} />
+        <Header
+          brand={brand}
+          matchMeta={matchMeta}
+          role={role}
+          onChangeRole={updateRole}
+        />
 
         <PathOverview
           homeCurr={homeCurr}
           targetCurr={targetCurr}
           sponsorshipUsd={sponsorshipUsd}
-          posTotalUsd={posTotalUsd}
-          rsRatio={rsRatio}
         />
 
         <SponsorshipStream
@@ -182,36 +210,6 @@ function RailLayer() {
           sponsorAfterWise={sponsorAfterWise}
           sponsorAtEscrow={sponsorAtEscrow}
           sponsorAtLiveIp={sponsorAtLiveIp}
-          homeCurr={homeCurr}
-          targetCurr={targetCurr}
-        />
-
-        <RevenueShareStream
-          brand={brand}
-          matchMeta={matchMeta}
-          rsRatio={rsRatio}
-          posTotalUsd={posTotalUsd}
-          rsToBrandUsd={rsToBrandUsd}
-          liveIpRetainedUsd={liveIpRetainedUsd}
-          rsToBrandAfterRipple={rsToBrandAfterRipple}
-          homeCurr={homeCurr}
-          targetCurr={targetCurr}
-        />
-
-        <NetPosition
-          sponsorshipUsd={sponsorshipUsd}
-          sponsorAtLiveIp={sponsorAtLiveIp}
-          rsToBrandUsd={rsToBrandUsd}
-          liveIpRetainedUsd={liveIpRetainedUsd}
-        />
-
-        <WalletCards
-          brand={brand}
-          matchMeta={matchMeta}
-          sponsorAtLiveIp={sponsorAtLiveIp}
-          liveIpRetainedUsd={liveIpRetainedUsd}
-          rsToBrandAfterRipple={rsToBrandAfterRipple}
-          altrTxFeesUsd={altrTxFeesUsd}
           homeCurr={homeCurr}
           targetCurr={targetCurr}
         />
@@ -226,6 +224,26 @@ function RailLayer() {
         />
 
         <EscrowDepletion start={start} sponsorAtEscrow={sponsorAtEscrow} />
+
+        <WalletCards
+          brand={brand}
+          matchMeta={matchMeta}
+          sponsorAtLiveIp={sponsorAtLiveIp}
+          liveIpRetainedUsd={liveIpRetainedUsd}
+          rsToBrandAfterRipple={rsToBrandAfterRipple}
+          altrTxFeesUsd={altrTxFeesUsd}
+          homeCurr={homeCurr}
+          targetCurr={targetCurr}
+          role={role}
+        />
+
+        <NetPosition
+          sponsorshipUsd={sponsorshipUsd}
+          sponsorAtLiveIp={sponsorAtLiveIp}
+          rsToBrandUsd={rsToBrandUsd}
+          liveIpRetainedUsd={liveIpRetainedUsd}
+          role={role}
+        />
 
         <StepFooter
           backHref="/live"
@@ -287,29 +305,60 @@ function RailLayer() {
 function Header({
   brand,
   matchMeta,
+  role,
+  onChangeRole,
 }: {
   brand: BrandProfile
   matchMeta: MatchMeta
+  role: WaitlistRole
+  onChangeRole: (r: WaitlistRole) => void
 }) {
   return (
-    <header className="flex flex-col gap-2">
-      <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#5DCAA5]">
-        SETTLEMENT RAIL · LIVE
-      </span>
-      <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-white md:text-[26px]">
-        Money journey — {brand.brandName || 'Brand'} ×{' '}
-        {matchMeta.shortName}
-      </h1>
-      <p className="text-[13px] leading-[1.55] text-white/55 md:text-[14px]">
-        Two distinct streams traverse the rail. The{' '}
-        <span className="text-[#5DCAA5]">sponsorship capital</span> moves
-        once, upfront — Brand pays for the presence. The{' '}
-        <span className="text-[#A8E6CF]">revenue share</span> trickles
-        back in real-time as the event sells — Brand earns from
-        performance. On RS deals,{' '}
-        <span className="text-white">both apply simultaneously</span>, so
-        Brand's effective cost is the sponsorship minus what RS recovers.
-      </p>
+    <header className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-col gap-2">
+        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#5DCAA5]">
+          SETTLEMENT
+        </span>
+        <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-white md:text-[26px]">
+          Settlement — {brand.brandName || 'Brand'} ×{' '}
+          {matchMeta.shortName}
+        </h1>
+        <p className="text-[13px] leading-[1.55] text-white/55 md:text-[14px]">
+          End-of-deal settlement view. Sponsorship capital cleared
+          through escrow, milestone payouts settled, and final balances
+          landed. Real-time RS mechanics are on the LIVE page — here
+          you see the totals.
+        </p>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
+          View as
+        </span>
+        <div className="grid grid-cols-2 gap-0 overflow-hidden rounded-lg border border-white/[0.08]">
+          <button
+            type="button"
+            onClick={() => onChangeRole('brand')}
+            className={`px-3 py-1.5 text-[11px] font-medium transition ${
+              role === 'brand'
+                ? 'bg-[#5DCAA5]/[0.16] text-[#5DCAA5]'
+                : 'text-white/60 hover:text-white/85'
+            }`}
+          >
+            Brand
+          </button>
+          <button
+            type="button"
+            onClick={() => onChangeRole('live-ip')}
+            className={`px-3 py-1.5 text-[11px] font-medium transition ${
+              role === 'live-ip'
+                ? 'bg-[#5DCAA5]/[0.16] text-[#5DCAA5]'
+                : 'text-white/60 hover:text-white/85'
+            }`}
+          >
+            LIVE IP
+          </button>
+        </div>
+      </div>
     </header>
   )
 }
@@ -318,14 +367,10 @@ function PathOverview({
   homeCurr,
   targetCurr,
   sponsorshipUsd,
-  posTotalUsd,
-  rsRatio,
 }: {
   homeCurr: string
   targetCurr: string
   sponsorshipUsd: number
-  posTotalUsd: number
-  rsRatio: number
 }) {
   return (
     <section className="mt-6 flex flex-col gap-2 rounded-2xl border border-white/[0.06] bg-black/30 p-3 md:p-4">
@@ -334,12 +379,6 @@ function PathOverview({
         amount={`${fmtUSD(sponsorshipUsd)} · one-time`}
         accent="#5DCAA5"
         steps={[homeCurr, 'USD', 'USDC', 'Escrow', targetCurr]}
-      />
-      <PathRow
-        label="RS revenue"
-        amount={`${rsRatio}% of ~${fmtUSD(posTotalUsd)} POS · real-time`}
-        accent="#A8E6CF"
-        steps={[targetCurr, 'USDC', 'Split', homeCurr]}
       />
     </section>
   )
@@ -415,8 +454,8 @@ function SponsorshipStream({
       style={{ borderColor: 'rgba(93,202,165,0.25)' }}
     >
       <SectionLabel
-        index="A"
-        title="Sponsorship capital · one-time"
+        index="Flow"
+        title="Sponsorship · capital flow"
         accent="#5DCAA5"
         sub={`${fmtUSD(sponsorshipUsd)} leaves Brand · ~${fmtUSD(sponsorAtLiveIp)} arrives at LIVE IP after fees`}
       />
@@ -497,128 +536,6 @@ function SponsorshipStream({
   )
 }
 
-function RevenueShareStream({
-  brand,
-  matchMeta,
-  rsRatio,
-  posTotalUsd,
-  rsToBrandUsd,
-  liveIpRetainedUsd,
-  rsToBrandAfterRipple,
-  homeCurr,
-  targetCurr,
-}: {
-  brand: BrandProfile
-  matchMeta: MatchMeta
-  rsRatio: number
-  posTotalUsd: number
-  rsToBrandUsd: number
-  liveIpRetainedUsd: number
-  rsToBrandAfterRipple: number
-  homeCurr: string
-  targetCurr: string
-}) {
-  return (
-    <section
-      className="relative mt-6 rounded-2xl border bg-black/30 p-5 md:p-6"
-      style={{ borderColor: 'rgba(168,230,207,0.25)' }}
-    >
-      <SectionLabel
-        index="B"
-        title="Revenue share · real-time"
-        accent="#A8E6CF"
-        sub={`POS revenue auto-splits live · ${rsRatio}% to Brand · ${100 - rsRatio}% retained by LIVE IP · only on RS deals`}
-      />
-
-      <div className="relative mt-5">
-        <RailColumn />
-        <div className="flex flex-col gap-3 sm:pl-10">
-          <Node
-            icon="📊"
-            title={`${matchMeta.shortName} POS`}
-            subtitle={`Lightspeed feed · live sales in ${targetCurr}`}
-            amountOut={`~${fmtLocal(posTotalUsd, targetCurr)} over deal period`}
-            fee="estimated"
-            timing="real-time"
-            accent="lightgreen"
-          >
-            <p className="mt-2 text-[11px] leading-[1.5] text-white/55">
-              Estimate ~{POS_REVENUE_MULTIPLE}× sponsorship based on
-              comparable activations. Actual splits accrue per-sale.
-            </p>
-          </Node>
-          <Connector label="per sale" />
-          <Node
-            icon="÷"
-            title="AUTO-SPLIT"
-            subtitle={`${rsRatio}% RS · ${100 - rsRatio}% retained · rule-based on-chain`}
-            amountIn={`~${fmtLocal(posTotalUsd, targetCurr)} (cumulative)`}
-            fee="rule-based"
-            timing="~1 s / sale"
-            accent="lightgreen"
-          >
-            <div className="mt-3 flex flex-col gap-1.5">
-              <SplitBar
-                label={`${100 - rsRatio}% LIVE IP retains`}
-                value={100 - rsRatio}
-                color="#5DCAA5"
-                amount={fmtLocal(liveIpRetainedUsd, targetCurr)}
-              />
-              <SplitBar
-                label={`${rsRatio}% to Brand (RS payout)`}
-                value={rsRatio}
-                color="#A8E6CF"
-                amount={fmtLocal(rsToBrandUsd, targetCurr)}
-              />
-            </div>
-          </Node>
-
-          <div className="mt-2 grid gap-3 sm:grid-cols-2">
-            <Node
-              icon="↗"
-              title="Ripple ODL"
-              subtitle={`USDC → ${homeCurr} · Brand RS path`}
-              amountIn={fmtLocal(rsToBrandUsd, 'USDC')}
-              amountOut={fmtLocal(rsToBrandAfterRipple, homeCurr)}
-              fee="−0.3% fee"
-              timing="~2 s"
-              accent="lightgreen"
-            />
-            <Node
-              icon="◉"
-              title={matchMeta.shortName}
-              subtitle={`${100 - rsRatio}% retained · stays in LIVE IP's ${targetCurr} account`}
-              amountOut={fmtLocal(liveIpRetainedUsd, targetCurr)}
-              timing="real-time"
-              accent="teal"
-            />
-            <Node
-              icon="◉"
-              title={brand.brandName || 'Brand'}
-              subtitle={`Brand wallet · RS received in ${homeCurr}`}
-              amountOut={fmtLocal(rsToBrandAfterRipple, homeCurr)}
-              timing="ongoing"
-              accent="teal"
-            />
-            <div className="rounded-xl border border-white/[0.06] bg-black/40 p-3.5 md:p-4">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
-                Why two streams?
-              </p>
-              <p className="mt-2 text-[11.5px] leading-[1.5] text-white/65">
-                Sponsorship is what the Brand pre-pays for{' '}
-                <span className="text-white">presence</span>. Revenue
-                share is what they earn back from{' '}
-                <span className="text-white">performance</span>. They flow
-                in opposite directions on different timelines.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function RailColumn() {
   return (
     <div className="pointer-events-none absolute left-3 top-0 bottom-0 hidden w-1.5 sm:block">
@@ -651,7 +568,7 @@ function SectionLabel({
         className="rounded px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em]"
         style={{ background: accent + '22', color: accent }}
       >
-        Stream {index}
+        {index}
       </span>
       <h2 className="text-[14.5px] font-semibold tracking-tight text-white">
         {title}
@@ -811,45 +728,73 @@ function NetPosition({
   sponsorAtLiveIp,
   rsToBrandUsd,
   liveIpRetainedUsd,
+  role,
 }: {
   sponsorshipUsd: number
   sponsorAtLiveIp: number
   rsToBrandUsd: number
   liveIpRetainedUsd: number
+  role: WaitlistRole
 }) {
   const brandNetCost = sponsorshipUsd - rsToBrandUsd
   const recoveryPct = (rsToBrandUsd / sponsorshipUsd) * 100
   const liveIpGross = sponsorAtLiveIp + liveIpRetainedUsd
+  const isLiveIP = role === 'live-ip'
 
   return (
     <section className="mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-5 md:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/50">
-          Net economic position · RS deal
+          {isLiveIP ? 'Your gross take' : 'Your net cost'}
         </span>
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
-          both streams together
+          end-of-deal totals
         </span>
       </div>
-      <p className="mt-1 text-[11.5px] leading-[1.5] text-white/55">
-        On an RS deal, Brand pays the sponsorship AND receives the RS
-        slice. Not double-pay — the RS recovers part of the upfront
-        outlay through performance.
-      </p>
 
-      <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        <div className="rounded-xl border border-[#5DCAA5]/30 bg-black/40 p-4">
+      {isLiveIP ? (
+        <div className="mt-4 rounded-xl border border-[#5DCAA5]/30 bg-black/40 p-4">
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#5DCAA5]">
-            Brand · net cost
+            LIVE IP · gross combined revenue
           </span>
           <div className="mt-3 flex flex-col gap-1.5 font-mono text-[12px]">
             <NetRow
-              label="Sponsorship paid (out)"
+              label="Sponsorship received"
+              value={`+${fmtUSD(sponsorAtLiveIp)}`}
+              color="#5DCAA5"
+            />
+            <NetRow
+              label="POS retained (85%)"
+              value={`+${fmtUSD(liveIpRetainedUsd)}`}
+              color="#5DCAA5"
+            />
+            <hr className="my-1 border-white/[0.06]" />
+            <NetRow
+              label="Total gross"
+              value={`+${fmtUSD(liveIpGross)}`}
+              color="#fff"
+              bold
+            />
+          </div>
+          <p className="mt-3 text-[11px] leading-[1.5] text-white/55">
+            Sponsorship covers fixed costs; POS retain is normal trading.
+            ALTR brokerage commission (10–15%) settles separately,
+            one-time, off-rail.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-4 rounded-xl border border-[#5DCAA5]/30 bg-black/40 p-4">
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#5DCAA5]">
+            Brand · effective cost
+          </span>
+          <div className="mt-3 flex flex-col gap-1.5 font-mono text-[12px]">
+            <NetRow
+              label="Sponsorship paid"
               value={`−${fmtUSD(sponsorshipUsd)}`}
               color="#F87171"
             />
             <NetRow
-              label={`RS payout received (in, ~${recoveryPct.toFixed(0)}% recovery)`}
+              label={`RS payout received (~${recoveryPct.toFixed(0)}% recovery)`}
               value={`+${fmtUSD(rsToBrandUsd)}`}
               color="#5DCAA5"
             />
@@ -862,42 +807,12 @@ function NetPosition({
             />
           </div>
           <p className="mt-3 text-[11px] leading-[1.5] text-white/55">
-            Brand secures presence for {fmtUSD(sponsorshipUsd)} guaranteed,
-            then recoups {fmtUSD(rsToBrandUsd)} from performance. Net out
-            of pocket: {fmtUSD(brandNetCost)}.
+            You paid {fmtUSD(sponsorshipUsd)} upfront for presence,
+            recouped {fmtUSD(rsToBrandUsd)} from performance. Net out of
+            pocket: {fmtUSD(brandNetCost)}.
           </p>
         </div>
-
-        <div className="rounded-xl border border-[#5DCAA5]/30 bg-black/40 p-4">
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#5DCAA5]">
-            LIVE IP · gross take
-          </span>
-          <div className="mt-3 flex flex-col gap-1.5 font-mono text-[12px]">
-            <NetRow
-              label="Sponsorship received (Stream A)"
-              value={`+${fmtUSD(sponsorAtLiveIp)}`}
-              color="#5DCAA5"
-            />
-            <NetRow
-              label={`POS retained (Stream B, 85%)`}
-              value={`+${fmtUSD(liveIpRetainedUsd)}`}
-              color="#5DCAA5"
-            />
-            <hr className="my-1 border-white/[0.06]" />
-            <NetRow
-              label="Gross combined revenue"
-              value={`+${fmtUSD(liveIpGross)}`}
-              color="#fff"
-              bold
-            />
-          </div>
-          <p className="mt-3 text-[11px] leading-[1.5] text-white/55">
-            Sponsorship covers fixed costs; POS retain is normal trading.
-            ALTR brokerage commission (10–15%) settles separately,
-            one-time, off-rail.
-          </p>
-        </div>
-      </div>
+      )}
     </section>
   )
 }
@@ -935,6 +850,7 @@ function WalletCards({
   altrTxFeesUsd,
   homeCurr,
   targetCurr,
+  role,
 }: {
   brand: BrandProfile
   matchMeta: MatchMeta
@@ -944,34 +860,39 @@ function WalletCards({
   altrTxFeesUsd: number
   homeCurr: string
   targetCurr: string
+  role: WaitlistRole
 }) {
+  const isLiveIP = role === 'live-ip'
   const liveIpTotalUsd = sponsorAtLiveIp + liveIpRetainedUsd
 
   return (
     <section className="mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-5 md:p-6">
       <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/50">
-        Wallets · projected end-of-deal balances
+        Your wallet · end-of-deal balance
       </span>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <WalletCard
-          name={brand.brandName || 'Brand'}
-          kind="Brand"
-          amount={fmtLocal(rsToBrandAfterRipple, homeCurr)}
-          note={`RS payouts received (Stream B · ${homeCurr})`}
-          accent="teal"
-        />
-        <WalletCard
-          name={matchMeta.shortName}
-          kind="LIVE IP"
-          amount={fmtLocal(liveIpTotalUsd, targetCurr)}
-          note={`Sponsorship (${fmtUSD(sponsorAtLiveIp)}) + POS retained (${fmtUSD(liveIpRetainedUsd)})`}
-          accent="teal"
-        />
+      <div className="mt-4 grid gap-3 sm:grid-cols-[2fr_1fr]">
+        {isLiveIP ? (
+          <WalletCard
+            name={matchMeta.shortName}
+            kind="LIVE IP · you"
+            amount={fmtLocal(liveIpTotalUsd, targetCurr)}
+            note={`Sponsorship (${fmtUSD(sponsorAtLiveIp)}) + POS retained (${fmtUSD(liveIpRetainedUsd)}) — counterparty's wallet is private to them.`}
+            accent="teal"
+          />
+        ) : (
+          <WalletCard
+            name={brand.brandName || 'Brand'}
+            kind="Brand · you"
+            amount={fmtLocal(rsToBrandAfterRipple, homeCurr)}
+            note={`RS payouts received in ${homeCurr}. Counterparty's wallet is private to them.`}
+            accent="teal"
+          />
+        )}
         <WalletCard
           name="ALTR Treasury"
-          kind="ALTR"
+          kind="ALTR · rail"
           amount={fmtLocal(altrTxFeesUsd, 'USDC')}
-          note="Transaction fees (0.4%) on both streams · brokerage settled separately"
+          note="Transaction fees you contributed to the rail · brokerage settled separately."
           accent="amber"
         />
       </div>
@@ -1129,7 +1050,7 @@ function SettlementSchedule({
           Settlement schedule
         </span>
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
-          Stream A · sponsorship  ·  Stream B · RS
+          sponsorship · RS payouts
         </span>
       </div>
       <div className="mt-3 overflow-x-auto">
@@ -1238,12 +1159,12 @@ function EscrowDepletion({
           Sponsorship escrow depletion
         </span>
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
-          {fmtCount(sponsorAtEscrow)} USDC starting · Stream A only
+          {fmtCount(sponsorAtEscrow)} USDC starting
         </span>
       </div>
       <p className="mt-1 text-[11.5px] leading-[1.5] text-white/45">
-        Tracks the upfront sponsorship pool only. RS revenue (Stream B) is
-        pass-through real-time, no escrow involved.
+        Tracks the upfront sponsorship pool. RS revenue is pass-through
+        real-time (see the LIVE page), no escrow involved.
       </p>
       <div className="mt-4 flex flex-col gap-2.5">
         {snapshots.map((s, i) => (
