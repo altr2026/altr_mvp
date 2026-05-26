@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import { StepFooter } from '@/components/demo/StepFooter'
 import { StepShell } from '@/components/demo/StepShell'
 import { useDemoState } from '@/components/providers/DemoStateProvider'
 import {
@@ -218,18 +219,23 @@ function LiveLayer() {
           targetCurr={targetCurr}
         />
 
-        <div className="mt-10 flex flex-col items-end gap-3">
-          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/40">
-            POS stream healthy · Day {dayN} of {totalDays}
-          </p>
-          <button
-            type="button"
-            onClick={handleNext}
-            className="rounded-lg bg-[#5DCAA5] px-6 py-3 text-[13px] font-semibold text-[#06120E] transition hover:bg-[#7BD7B7]"
-          >
-            View settlement →
-          </button>
-        </div>
+        <StepFooter
+          backHref="/contract"
+          statusLine={
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/40">
+              POS stream healthy · Day {dayN} of {totalDays}
+            </p>
+          }
+          rightSlot={
+            <button
+              type="button"
+              onClick={handleNext}
+              className="rounded-lg bg-[#5DCAA5] px-6 py-3 text-[13px] font-semibold text-[#06120E] transition hover:bg-[#7BD7B7]"
+            >
+              View settlement →
+            </button>
+          }
+        />
       </div>
 
       <style>{`

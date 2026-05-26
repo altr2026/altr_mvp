@@ -1,3 +1,4 @@
+import { StepFooter } from '@/components/demo/StepFooter'
 import { StepShell } from '@/components/demo/StepShell'
 import { GoldenMatch } from '@/components/step3/GoldenMatch'
 
@@ -11,6 +12,7 @@ export default function ConfirmPage() {
   return (
     <StepShell currentStep={2}>
       <GoldenMatch />
+      <StepFooter backHref="/match" />
     </StepShell>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { StepFooter } from '@/components/demo/StepFooter'
 import { StepShell } from '@/components/demo/StepShell'
 import { useDemoState } from '@/components/providers/DemoStateProvider'
 import { StyledSelect } from '@/components/ui/StyledSelect'
@@ -301,21 +302,26 @@ function ContractLayer() {
           brokerageAmount={brokerageAmount}
         />
 
-        <div className="mt-10 flex flex-col items-end gap-3">
-          {generating && (
-            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#5DCAA5]">
-              Deal locked · Activation window opening
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={handleLock}
-            disabled={generating}
-            className="rounded-lg bg-[#5DCAA5] px-6 py-3 text-[13px] font-semibold text-[#06120E] transition hover:bg-[#7BD7B7] disabled:cursor-wait disabled:opacity-60"
-          >
-            Activate deal &amp; go LIVE →
-          </button>
-        </div>
+        <StepFooter
+          backHref="/confirm"
+          statusLine={
+            generating ? (
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#5DCAA5]">
+                Deal locked · Activation window opening
+              </p>
+            ) : undefined
+          }
+          rightSlot={
+            <button
+              type="button"
+              onClick={handleLock}
+              disabled={generating}
+              className="rounded-lg bg-[#5DCAA5] px-6 py-3 text-[13px] font-semibold text-[#06120E] transition hover:bg-[#7BD7B7] disabled:cursor-wait disabled:opacity-60"
+            >
+              Activate deal &amp; go LIVE →
+            </button>
+          }
+        />
       </div>
     </div>
   )
