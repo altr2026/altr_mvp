@@ -808,15 +808,33 @@ function EmptyArrow() {
   return <div className="h-px" />
 }
 
+// Flow stages — each pill carries its position in time
+type StageCell = {
+  number: string
+  timeLabel: string
+  block: BlockDef
+}
+
+const STAGE_1: StageCell[] = [
+  { number: '01', timeLabel: 'T=0 · deposit', block: BLOCKS[0] },
+  { number: '02', timeLabel: 'T=0 · convert', block: BLOCKS[1] },
+  { number: '03', timeLabel: 'T=0 · lock', block: BLOCKS[2] },
+]
+const STAGE_2: StageCell[] = [
+  { number: '04', timeLabel: 'T+milestone', block: BLOCKS[3] },
+  { number: '05', timeLabel: 'T+parallel', block: BLOCKS[4] },
+  { number: '06', timeLabel: 'T+split', block: BLOCKS[5] },
+  { number: '07', timeLabel: 'T=end', block: BLOCKS[6] },
+]
+const STAGE_3: StageCell = {
+  number: '08',
+  timeLabel: 'settled',
+  block: BLOCKS[7],
+}
+
 function CompactRail({ dealType }: { dealType: DealType }) {
   const activeCount = BLOCKS.filter((b) => b.activeFor.includes(dealType))
     .length
-  // Actual settlement flow:
-  //   FIAT IN → USDC → ESCROW  (capital locked)
-  //                      ↓ milestone fires
-  //              TRIGGER → POS API → AUTO-SPLIT → FX → POE
-  const PRE_BLOCKS = BLOCKS.slice(0, 3)
-  const POST_BLOCKS = BLOCKS.slice(3)
 
   return (
     <section className="mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-4 md:p-5">
@@ -829,35 +847,117 @@ function CompactRail({ dealType }: { dealType: DealType }) {
         </span>
       </div>
 
-      {/* Stage 1 — capital flows into escrow and locks */}
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        {PRE_BLOCKS.map((block) => (
-          <CompactPill key={block.key} block={block} dealType={dealType} />
+      {/* DESKTOP — flow diagram (4-col grid, uniform cell width) */}
+      <div className="mt-4 hidden grid-cols-4 gap-x-3 gap-y-2 sm:grid">
+        {/* Row 1: stage 1 occupies cols 1-3, col 4 empty */}
+        {STAGE_1.map((s, i) => (
+          <TimedCell
+            key={s.block.key}
+            stage={s}
+            dealType={dealType}
+            arrowRight={i < STAGE_1.length - 1}
+          />
         ))}
+        <div />
+
+        {/* Row 2: milestone connector under col 3 (ESCROW) */}
+        <div />
+        <div />
+        <Connector label="milestone trigger" tone="lime" />
+        <div />
+
+        {/* Row 3: stage 2 fills all 4 cols */}
+        {STAGE_2.map((s, i) => (
+          <TimedCell
+            key={s.block.key}
+            stage={s}
+            dealType={dealType}
+            arrowRight={i < STAGE_2.length - 1}
+          />
+        ))}
+
+        {/* Row 4: settlement connector under col 4 (FX) */}
+        <div />
+        <div />
+        <div />
+        <Connector tone="dim" />
+
+        {/* Row 5: POE pill under col 4 */}
+        <div />
+        <div />
+        <div />
+        <TimedCell stage={STAGE_3} dealType={dealType} />
       </div>
 
-      {/* Milestone connector — drops from ESCROW into TRIGGER */}
-      <div className="my-2 flex items-center justify-center gap-2">
-        <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/40">
-          milestone
-        </span>
-        <span className="text-[13px] leading-none text-white/40">↓</span>
-      </div>
-
-      {/* Stage 2 — trigger fires, sales settle, splits hit accounts */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-        {POST_BLOCKS.map((block) => (
-          <CompactPill key={block.key} block={block} dealType={dealType} />
+      {/* MOBILE — simple 2-col stack */}
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
+        {[...STAGE_1, ...STAGE_2, STAGE_3].map((s) => (
+          <TimedCell key={s.block.key} stage={s} dealType={dealType} />
         ))}
       </div>
     </section>
   )
 }
 
-function CompactPill({
+function Connector({
+  label,
+  tone,
+}: {
+  label?: string
+  tone: 'lime' | 'dim'
+}) {
+  const lineClass = tone === 'lime' ? 'bg-altr-lime/40' : 'bg-white/15'
+  const textClass = tone === 'lime' ? 'text-altr-lime' : 'text-white/30'
+  return (
+    <div className="flex flex-col items-center justify-center gap-0.5 py-1">
+      <div className={`h-2.5 w-px ${lineClass}`} />
+      {label && (
+        <span
+          className={`font-mono text-[9px] uppercase tracking-[0.22em] ${textClass}`}
+        >
+          {label}
+        </span>
+      )}
+      {label && <div className={`h-2.5 w-px ${lineClass}`} />}
+      <span className={`text-[11px] leading-none ${textClass}`}>▼</span>
+    </div>
+  )
+}
+
+function TimedCell({
+  stage,
+  dealType,
+  arrowRight,
+}: {
+  stage: StageCell
+  dealType: DealType
+  arrowRight?: boolean
+}) {
+  return (
+    <div className="relative flex flex-col gap-1">
+      <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-white/35">
+        {stage.timeLabel}
+      </span>
+      <TimedPill
+        number={stage.number}
+        block={stage.block}
+        dealType={dealType}
+      />
+      {arrowRight && (
+        <span className="pointer-events-none absolute -right-3 top-[60%] hidden -translate-y-1/2 text-[14px] leading-none text-white/25 sm:block">
+          →
+        </span>
+      )}
+    </div>
+  )
+}
+
+function TimedPill({
+  number,
   block,
   dealType,
 }: {
+  number: string
   block: BlockDef
   dealType: DealType
 }) {
@@ -865,24 +965,25 @@ function CompactPill({
   const cfg = COLORS[block.color]
   return (
     <div
-      className="rounded-lg border px-3 py-2 transition-all duration-200"
+      className="flex h-[68px] flex-col justify-between rounded-lg border px-3 py-2 transition-all duration-200"
       style={{
-        borderColor: isActive
-          ? cfg.strip + '55'
-          : 'rgba(255,255,255,0.05)',
+        borderColor: isActive ? cfg.strip + '55' : 'rgba(255,255,255,0.05)',
         background: isActive ? cfg.activeBg : 'rgba(255,255,255,0.02)',
         opacity: isActive ? 1 : 0.45,
       }}
     >
-      <div className="flex items-center gap-2">
-        <span className="inline-flex w-4 flex-shrink-0 justify-center text-[13px] leading-none">
+      <div className="flex items-center gap-1.5">
+        <span className="font-mono text-[9px] tracking-[0.05em] text-white/40">
+          {number}
+        </span>
+        <span className="inline-flex w-4 flex-shrink-0 justify-center text-[12px] leading-none">
           {block.icon}
         </span>
-        <span className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-white">
+        <span className="truncate font-mono text-[10px] uppercase tracking-[0.1em] text-white">
           {block.name}
         </span>
       </div>
-      <div className="mt-1 flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5">
         <span
           className="h-1 w-1 rounded-full"
           style={{ background: isActive ? cfg.strip : '#3a3a3a' }}
