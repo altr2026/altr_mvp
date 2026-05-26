@@ -257,6 +257,7 @@ function ContractLayer() {
           brokeragePct={brokeragePct}
           brokerageAmount={brokerageAmount}
           frequency={frequency}
+          role={role}
         />
 
         <CompactRail dealType={dealType} />
@@ -497,6 +498,7 @@ function ThreeActorFlow({
   brokeragePct,
   brokerageAmount,
   frequency,
+  role,
 }: {
   brand: BrandProfile
   matchMeta: MatchMeta
@@ -510,7 +512,9 @@ function ThreeActorFlow({
   brokeragePct: number
   brokerageAmount: number
   frequency: string
+  role: WaitlistRole
 }) {
+  const showBrokerageArrow = role === 'live-ip'
   return (
     <section className="mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-5 md:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -570,17 +574,19 @@ function ThreeActorFlow({
           }
         />
 
-        <FlowRow
-          left={<EmptyArrow />}
-          right={
-            <ArrowSegment
-              direction="left"
-              color="amber"
-              amount={`${brokeragePct}% · ${fmtUSD(brokerageAmount)}`}
-              sub="brokerage · one-time · LIVE IP → ALTR"
-            />
-          }
-        />
+        {showBrokerageArrow && (
+          <FlowRow
+            left={<EmptyArrow />}
+            right={
+              <ArrowSegment
+                direction="left"
+                color="amber"
+                amount={`${brokeragePct}% · ${fmtUSD(brokerageAmount)}`}
+                sub="brokerage · one-time · you pay ALTR"
+              />
+            }
+          />
+        )}
 
         {dealType === 'rs' && (
           <>
