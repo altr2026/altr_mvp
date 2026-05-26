@@ -12,33 +12,11 @@ import {
 } from '@/lib/demo-state'
 import type { WaitlistRole } from '@/types'
 
-const ROLE_STORAGE_KEY = 'altr_demo_role'
-
 type DealType = 'fixed' | 'milestone' | 'rs'
 type BlockColor = 'teal' | 'lightgreen' | 'amber'
-
 type Milestone = { id: 'M1' | 'M2' | 'M3'; label: string; date: Date }
 
-type BlockCtx = {
-  dealType: DealType
-  rsRatio: number
-  dealValue: number
-  duration: number
-  frequency: string
-  brand: BrandProfile
-  matchMeta: MatchMeta
-  milestones: Milestone[]
-  fxRail: string
-}
-
-type BlockDef = {
-  key: string
-  icon: string
-  name: string
-  color: BlockColor
-  activeFor: DealType[]
-  describe: (ctx: BlockCtx) => string
-}
+const ROLE_STORAGE_KEY = 'altr_demo_role'
 
 const COLORS: Record<
   BlockColor,
@@ -46,19 +24,19 @@ const COLORS: Record<
 > = {
   teal: {
     strip: '#5DCAA5',
-    activeBg: '#1A2E28',
+    activeBg: 'rgba(26, 46, 40, 0.55)',
     badgeBg: 'rgba(93, 202, 165, 0.16)',
     badgeText: '#5DCAA5',
   },
   lightgreen: {
     strip: '#A8E6CF',
-    activeBg: '#1A2E24',
+    activeBg: 'rgba(26, 46, 36, 0.55)',
     badgeBg: 'rgba(168, 230, 207, 0.16)',
     badgeText: '#A8E6CF',
   },
   amber: {
     strip: '#EF9F27',
-    activeBg: '#2E2410',
+    activeBg: 'rgba(46, 36, 16, 0.55)',
     badgeBg: 'rgba(239, 159, 39, 0.16)',
     badgeText: '#EF9F27',
   },
@@ -82,10 +60,6 @@ function targetCurrency(brand: BrandProfile): string {
   if (t.includes('Southeast')) return 'SGD'
   if (t.includes('Europe')) return 'EUR'
   return 'USD'
-}
-
-function detectFXRail(brand: BrandProfile): string {
-  return `${homeCurrency(brand)} → USDC → ${targetCurrency(brand)}`
 }
 
 function quarterStart(timing: string): Date {
@@ -140,93 +114,23 @@ function shortIP(meta: MatchMeta): string {
   return (meta.shortName || meta.name || 'IP').split(' ')[0]
 }
 
+type BlockDef = {
+  key: string
+  icon: string
+  name: string
+  color: BlockColor
+  activeFor: DealType[]
+}
+
 const BLOCKS: BlockDef[] = [
-  {
-    key: 'fiat-in',
-    icon: '→',
-    name: 'FIAT IN',
-    color: 'teal',
-    activeFor: ['fixed', 'milestone', 'rs'],
-    describe: ({ brand, dealType }) =>
-      dealType === 'rs'
-        ? `Wise · ${homeCurrency(brand)} received`
-        : `Wise · ${homeCurrency(brand)}/USD received`,
-  },
-  {
-    key: 'usdc',
-    icon: '⬡',
-    name: '→ USDC',
-    color: 'teal',
-    activeFor: ['fixed', 'milestone', 'rs'],
-    describe: ({ dealType, dealValue }) =>
-      dealType === 'rs'
-        ? `Circle · ${Math.round(dealValue).toLocaleString()} USDC`
-        : 'Circle Mint · 1:1 conversion',
-  },
-  {
-    key: 'escrow',
-    icon: '🔒',
-    name: 'ESCROW',
-    color: 'teal',
-    activeFor: ['fixed', 'milestone', 'rs'],
-    describe: ({ dealType }) =>
-      dealType === 'rs'
-        ? 'XRPL · locked until milestone'
-        : 'XRPL · funds locked on-chain',
-  },
-  {
-    key: 'trigger',
-    icon: '⚡',
-    name: 'TRIGGER',
-    color: 'lightgreen',
-    activeFor: ['milestone', 'rs'],
-    describe: ({ milestones, dealType }) => {
-      if (dealType === 'milestone') return '3 milestones defined · auto-release'
-      return milestones.map((m) => `${m.id} ${fmtDate(m.date)}`).join(' · ')
-    },
-  },
-  {
-    key: 'pos',
-    icon: '📊',
-    name: 'POS API',
-    color: 'lightgreen',
-    activeFor: ['rs'],
-    describe: () => 'Lightspeed · real-time sales feed',
-  },
-  {
-    key: 'split',
-    icon: '÷',
-    name: 'AUTO-SPLIT',
-    color: 'lightgreen',
-    activeFor: ['rs'],
-    describe: ({ rsRatio, brand, matchMeta, frequency }) =>
-      `${rsRatio}% ${shortBrand(brand)} · ${100 - rsRatio}% ${shortIP(matchMeta)} · ${frequency.toLowerCase()}`,
-  },
-  {
-    key: 'fx',
-    icon: '↔',
-    name: 'FX',
-    color: 'amber',
-    activeFor: ['fixed', 'milestone', 'rs'],
-    describe: ({ brand, dealType }) => {
-      const home = homeCurrency(brand)
-      const target = targetCurrency(brand)
-      return dealType === 'rs'
-        ? `USDC→${home} + USDC→${target} · Ripple ODL`
-        : `Ripple ODL · ${home}→USDC→${target}`
-    },
-  },
-  {
-    key: 'poe',
-    icon: '⛓',
-    name: 'POE',
-    color: 'teal',
-    activeFor: ['fixed', 'milestone', 'rs'],
-    describe: ({ dealType }) =>
-      dealType === 'rs'
-        ? 'XRPL · all receipts anchored'
-        : 'XRPL receipt · permanent proof',
-  },
+  { key: 'fiat-in', icon: '→', name: 'FIAT IN', color: 'teal', activeFor: ['fixed', 'milestone', 'rs'] },
+  { key: 'usdc', icon: '⬡', name: '→ USDC', color: 'teal', activeFor: ['fixed', 'milestone', 'rs'] },
+  { key: 'escrow', icon: '🔒', name: 'ESCROW', color: 'teal', activeFor: ['fixed', 'milestone', 'rs'] },
+  { key: 'trigger', icon: '⚡', name: 'TRIGGER', color: 'lightgreen', activeFor: ['milestone', 'rs'] },
+  { key: 'pos', icon: '📊', name: 'POS API', color: 'lightgreen', activeFor: ['rs'] },
+  { key: 'split', icon: '÷', name: 'AUTO-SPLIT', color: 'lightgreen', activeFor: ['rs'] },
+  { key: 'fx', icon: '↔', name: 'FX', color: 'amber', activeFor: ['fixed', 'milestone', 'rs'] },
+  { key: 'poe', icon: '⛓', name: 'POE', color: 'teal', activeFor: ['fixed', 'milestone', 'rs'] },
 ]
 
 const DURATION_OPTIONS = ['1 month', '3 months', '6 months', '12 months']
@@ -255,6 +159,7 @@ function ContractLayer() {
   const [rsRatio, setRsRatio] = useState(15)
   const [durationLabel, setDurationLabel] = useState('3 months')
   const [frequency, setFrequency] = useState('Monthly')
+  const [brokeragePct, setBrokeragePct] = useState(12)
   const [generating, setGenerating] = useState(false)
   const [role, setRole] = useState<WaitlistRole>('brand')
 
@@ -280,8 +185,19 @@ function ContractLayer() {
   }
 
   const duration = parseInt(durationLabel, 10) || 3
-  const dealValue = useMemo(() => parseMaxBudget(brand.budgetRange), [brand.budgetRange])
-  const fxRail = useMemo(() => detectFXRail(brand), [brand])
+  const dealValue = useMemo(
+    () => parseMaxBudget(brand.budgetRange),
+    [brand.budgetRange],
+  )
+  const homeCurr = homeCurrency(brand)
+  const targetCurr = targetCurrency(brand)
+  const fxRail = `${homeCurr} → USDC → ${targetCurr}`
+
+  const sponsorshipNet = dealValue * (1 - 0.004) // -0.4% altr transaction fee
+  const brokerageAmount = dealValue * (brokeragePct / 100)
+  const rsPerPeriod =
+    dealType === 'rs' ? dealValue * (rsRatio / 100) * 0.5 : 0
+  // ^ rough demo estimate of RS payout-per-settlement (50% of ratio cap)
 
   const milestones: Milestone[] = useMemo(() => {
     const start = quarterStart(matchMeta.timing)
@@ -296,19 +212,7 @@ function ContractLayer() {
     ]
   }, [matchMeta.timing, duration])
 
-  const blockCtx: BlockCtx = {
-    dealType,
-    rsRatio,
-    dealValue,
-    duration,
-    frequency,
-    brand,
-    matchMeta,
-    milestones,
-    fxRail,
-  }
-
-  const handleGenerate = () => {
+  const handleLock = () => {
     if (generating) return
     setGenerating(true)
     window.setTimeout(() => router.push('/rail'), 1100)
@@ -317,77 +221,67 @@ function ContractLayer() {
   return (
     <div className="px-6 pb-24 pt-6 md:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex flex-col gap-2">
-            <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#5DCAA5]">
-              CONTRACT LAYER
-            </span>
-            <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-white md:text-[26px]">
-              Configure deal — {brand.brandName || 'Brand'} ×{' '}
-              {matchMeta.shortName}
-            </h1>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
-              View as
-            </span>
-            <div className="grid grid-cols-2 gap-0 overflow-hidden rounded-lg border border-white/[0.08]">
-              <button
-                type="button"
-                onClick={() => updateRole('brand')}
-                className={`px-3 py-1.5 text-[11px] font-medium transition ${
-                  role === 'brand'
-                    ? 'bg-[#5DCAA5]/[0.16] text-[#5DCAA5]'
-                    : 'text-white/60 hover:text-white/85'
-                }`}
-              >
-                Brand
-              </button>
-              <button
-                type="button"
-                onClick={() => updateRole('live-ip')}
-                className={`px-3 py-1.5 text-[11px] font-medium transition ${
-                  role === 'live-ip'
-                    ? 'bg-[#5DCAA5]/[0.16] text-[#5DCAA5]'
-                    : 'text-white/60 hover:text-white/85'
-                }`}
-              >
-                LIVE IP
-              </button>
-            </div>
-          </div>
-        </header>
+        <PageHeader
+          brand={brand}
+          matchMeta={matchMeta}
+          role={role}
+          onChangeRole={updateRole}
+        />
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-[2fr_3fr] lg:gap-10">
-          <DealParameters
-            dealType={dealType}
-            setDealType={setDealType}
-            rsRatio={rsRatio}
-            setRsRatio={setRsRatio}
-            durationLabel={durationLabel}
-            setDurationLabel={setDurationLabel}
-            frequency={frequency}
-            setFrequency={setFrequency}
-            fxRail={fxRail}
-            milestones={milestones}
-          />
+        <DealConfigBar
+          dealType={dealType}
+          setDealType={setDealType}
+          rsRatio={rsRatio}
+          setRsRatio={setRsRatio}
+          durationLabel={durationLabel}
+          setDurationLabel={setDurationLabel}
+          frequency={frequency}
+          setFrequency={setFrequency}
+          fxRail={fxRail}
+          brokeragePct={brokeragePct}
+          setBrokeragePct={setBrokeragePct}
+          milestones={milestones}
+          role={role}
+        />
 
-          <SettlementRail ctx={blockCtx} dealValue={dealValue} role={role} />
-        </div>
+        <ThreeActorFlow
+          brand={brand}
+          matchMeta={matchMeta}
+          dealType={dealType}
+          dealValue={dealValue}
+          sponsorshipNet={sponsorshipNet}
+          homeCurr={homeCurr}
+          targetCurr={targetCurr}
+          rsRatio={rsRatio}
+          rsPerPeriod={rsPerPeriod}
+          brokeragePct={brokeragePct}
+          brokerageAmount={brokerageAmount}
+          frequency={frequency}
+        />
+
+        <CompactRail dealType={dealType} />
+
+        <FeeBreakdown
+          dealValue={dealValue}
+          dealType={dealType}
+          role={role}
+          brokeragePct={brokeragePct}
+          brokerageAmount={brokerageAmount}
+        />
 
         <div className="mt-10 flex flex-col items-end gap-3">
           {generating && (
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#5DCAA5]">
-              Contract generated · Settlement rail locked
+              Deal locked · Settlement rail configured
             </p>
           )}
           <button
             type="button"
-            onClick={handleGenerate}
+            onClick={handleLock}
             disabled={generating}
             className="rounded-lg bg-[#5DCAA5] px-6 py-3 text-[13px] font-semibold text-[#06120E] transition hover:bg-[#7BD7B7] disabled:cursor-wait disabled:opacity-60"
           >
-            Generate contract →
+            Lock deal &amp; configure rail →
           </button>
         </div>
       </div>
@@ -395,7 +289,62 @@ function ContractLayer() {
   )
 }
 
-function DealParameters({
+function PageHeader({
+  brand,
+  matchMeta,
+  role,
+  onChangeRole,
+}: {
+  brand: BrandProfile
+  matchMeta: MatchMeta
+  role: WaitlistRole
+  onChangeRole: (r: WaitlistRole) => void
+}) {
+  return (
+    <header className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-col gap-2">
+        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#5DCAA5]">
+          CONTRACT LAYER
+        </span>
+        <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-white md:text-[26px]">
+          Configure deal — {brand.brandName || 'Brand'} ×{' '}
+          {matchMeta.shortName}
+        </h1>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
+          View as
+        </span>
+        <div className="grid grid-cols-2 gap-0 overflow-hidden rounded-lg border border-white/[0.08]">
+          <button
+            type="button"
+            onClick={() => onChangeRole('brand')}
+            className={`px-3 py-1.5 text-[11px] font-medium transition ${
+              role === 'brand'
+                ? 'bg-[#5DCAA5]/[0.16] text-[#5DCAA5]'
+                : 'text-white/60 hover:text-white/85'
+            }`}
+          >
+            Brand
+          </button>
+          <button
+            type="button"
+            onClick={() => onChangeRole('live-ip')}
+            className={`px-3 py-1.5 text-[11px] font-medium transition ${
+              role === 'live-ip'
+                ? 'bg-[#5DCAA5]/[0.16] text-[#5DCAA5]'
+                : 'text-white/60 hover:text-white/85'
+            }`}
+          >
+            LIVE IP
+          </button>
+        </div>
+      </div>
+    </header>
+  )
+}
+
+function DealConfigBar({
   dealType,
   setDealType,
   rsRatio,
@@ -405,7 +354,10 @@ function DealParameters({
   frequency,
   setFrequency,
   fxRail,
+  brokeragePct,
+  setBrokeragePct,
   milestones,
+  role,
 }: {
   dealType: DealType
   setDealType: (d: DealType) => void
@@ -416,12 +368,22 @@ function DealParameters({
   frequency: string
   setFrequency: (s: string) => void
   fxRail: string
+  brokeragePct: number
+  setBrokeragePct: (n: number) => void
   milestones: Milestone[]
+  role: WaitlistRole
 }) {
+  const isRS = dealType === 'rs'
+  const showMilestones = dealType === 'milestone' || isRS
+  const showBrokerage = role === 'live-ip'
+
   return (
-    <div className="flex flex-col gap-5 rounded-2xl border border-white/[0.06] bg-black/30 p-5 md:p-6">
-      <FieldGroup label="Deal type">
-        <div className="grid grid-cols-3 gap-1 rounded-lg border border-white/[0.06] bg-black/40 p-1">
+    <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-white/[0.06] bg-black/30 p-4 md:p-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
+          Deal type
+        </span>
+        <div className="flex gap-1 rounded-lg border border-white/[0.06] bg-black/40 p-1">
           {(
             [
               { key: 'fixed', label: 'Fixed Fee' },
@@ -433,7 +395,7 @@ function DealParameters({
               key={t.key}
               type="button"
               onClick={() => setDealType(t.key)}
-              className={`rounded px-2 py-2 text-[12px] font-medium transition ${
+              className={`rounded px-3 py-1.5 text-[12px] font-medium transition ${
                 dealType === t.key
                   ? 'bg-[#5DCAA5]/[0.16] text-[#5DCAA5]'
                   : 'text-white/60 hover:text-white/85'
@@ -443,194 +405,414 @@ function DealParameters({
             </button>
           ))}
         </div>
-      </FieldGroup>
+      </div>
 
-      {dealType === 'rs' && (
-        <FieldGroup label="RS ratio">
-          <div className="flex items-center gap-4">
-            <input
-              type="range"
-              min={5}
-              max={30}
-              value={rsRatio}
-              onChange={(e) => setRsRatio(Number(e.target.value))}
-              className="flex-1 accent-[#5DCAA5]"
-            />
-            <span className="w-12 text-right font-mono text-[13px] text-[#5DCAA5]">
-              {rsRatio}%
-            </span>
-          </div>
-        </FieldGroup>
-      )}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {isRS && (
+          <SliderField
+            label="RS ratio"
+            min={5}
+            max={30}
+            value={rsRatio}
+            onChange={setRsRatio}
+            suffix="%"
+            accent="#5DCAA5"
+          />
+        )}
 
-      <FieldGroup label="Duration">
-        <StyledSelect
-          value={durationLabel}
-          options={DURATION_OPTIONS}
-          onChange={setDurationLabel}
-          triggerClassName={triggerClass}
-        />
-      </FieldGroup>
-
-      <FieldGroup label="Settlement FX" hint="Auto-detected from brand + IP locations">
-        <div className="rounded-lg border border-white/[0.06] bg-black/40 px-3 py-2.5 font-mono text-[13px] text-white/70">
-          {fxRail}
-        </div>
-      </FieldGroup>
-
-      {dealType === 'rs' && (
-        <FieldGroup label="Settlement freq">
+        <FieldGroup label="Duration">
           <StyledSelect
-            value={frequency}
-            options={FREQUENCY_OPTIONS}
-            onChange={setFrequency}
+            value={durationLabel}
+            options={DURATION_OPTIONS}
+            onChange={setDurationLabel}
             triggerClassName={triggerClass}
           />
         </FieldGroup>
-      )}
 
-      {(dealType === 'milestone' || dealType === 'rs') && (
-        <FieldGroup label="Milestones">
-          <div className="flex flex-col gap-2">
+        {isRS && (
+          <FieldGroup label="Settlement freq">
+            <StyledSelect
+              value={frequency}
+              options={FREQUENCY_OPTIONS}
+              onChange={setFrequency}
+              triggerClassName={triggerClass}
+            />
+          </FieldGroup>
+        )}
+
+        <FieldGroup label="Settlement FX" hint="Auto from markets">
+          <div className="rounded-lg border border-white/[0.06] bg-black/40 px-3 py-2.5 font-mono text-[13px] text-white/70">
+            {fxRail}
+          </div>
+        </FieldGroup>
+
+        {showBrokerage && (
+          <SliderField
+            label="Brokerage %"
+            min={10}
+            max={15}
+            value={brokeragePct}
+            onChange={setBrokeragePct}
+            suffix="%"
+            accent="#EF9F27"
+          />
+        )}
+      </div>
+
+      {showMilestones && (
+        <div className="border-t border-white/[0.06] pt-3">
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
+            Milestones
+          </span>
+          <div className="mt-2 flex flex-wrap gap-2">
             {milestones.map((m) => (
               <div
                 key={m.id}
-                className="flex items-center gap-3 rounded-lg border border-white/[0.06] bg-black/40 px-3 py-2.5 text-[12.5px]"
+                className="flex items-center gap-2 rounded border border-white/[0.06] bg-black/40 px-2.5 py-1.5 text-[11.5px]"
               >
                 <span className="font-mono text-[#5DCAA5]">{m.id}</span>
-                <span className="flex-1 text-white/85">{m.label}</span>
-                <span className="font-mono text-[12px] text-white/60">
+                <span className="text-white/85">{m.label}</span>
+                <span className="font-mono text-[10.5px] text-white/55">
                   {fmtDate(m.date)}
                 </span>
               </div>
             ))}
           </div>
-        </FieldGroup>
+        </div>
       )}
     </div>
   )
 }
 
-function SettlementRail({
-  ctx,
+function ThreeActorFlow({
+  brand,
+  matchMeta,
+  dealType,
   dealValue,
-  role,
+  sponsorshipNet,
+  homeCurr,
+  targetCurr,
+  rsRatio,
+  rsPerPeriod,
+  brokeragePct,
+  brokerageAmount,
+  frequency,
 }: {
-  ctx: BlockCtx
+  brand: BrandProfile
+  matchMeta: MatchMeta
+  dealType: DealType
   dealValue: number
-  role: WaitlistRole
+  sponsorshipNet: number
+  homeCurr: string
+  targetCurr: string
+  rsRatio: number
+  rsPerPeriod: number
+  brokeragePct: number
+  brokerageAmount: number
+  frequency: string
 }) {
-  const { dealType } = ctx
-  const activeCount = BLOCKS.filter((b) => b.activeFor.includes(dealType)).length
-
   return (
-    <div className="flex flex-col gap-3">
-      <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/50">
-        Settlement rail
-      </span>
-
-      <div className="flex flex-col gap-2">
-        {BLOCKS.map((block) => (
-          <BlockCard key={block.key} block={block} ctx={ctx} />
-        ))}
+    <section className="mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-5 md:p-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/50">
+          Money flow
+        </span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
+          {dealType === 'fixed'
+            ? 'Fixed fee deal'
+            : dealType === 'milestone'
+              ? 'Milestone deal'
+              : 'Revenue Share deal · circular'}
+        </span>
       </div>
 
-      {dealType === 'rs' ? (
-        <MoatBox activeCount={activeCount} />
-      ) : (
-        <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.15em] text-white/55">
-          {activeCount} layers active ·{' '}
-          {dealType === 'fixed'
-            ? 'Fixed fee deal · Simple settlement'
-            : 'Milestone deal · Conditional settlement'}
-        </p>
-      )}
+      <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-4">
+        <ActorCard
+          kind="Brand"
+          name={shortBrand(brand)}
+          subtitle={brand.vertical || 'sponsor'}
+          fullName={brand.brandName}
+          accent="teal"
+        />
+        <ActorCard
+          kind="ALTR"
+          name="ALTR"
+          subtitle="rail + brokerage"
+          accent="amber"
+          highlight
+        />
+        <ActorCard
+          kind="Live IP"
+          name={shortIP(matchMeta)}
+          subtitle={matchMeta.location}
+          fullName={matchMeta.shortName}
+          accent="teal"
+        />
+      </div>
 
-      {dealType === 'rs' && <FeeBreakdown dealValue={dealValue} role={role} />}
-    </div>
+      <div className="mt-5 flex flex-col gap-3">
+        <FlowRow
+          left={
+            <ArrowSegment
+              direction="right"
+              color="teal"
+              amount={`${fmtUSD(dealValue)} ${homeCurr}`}
+              sub="sponsorship in"
+            />
+          }
+          right={
+            <ArrowSegment
+              direction="right"
+              color="teal"
+              amount={`${fmtUSD(sponsorshipNet)} ${targetCurr}`}
+              sub="net to LIVE IP · −0.4% tx"
+            />
+          }
+        />
+
+        <FlowRow
+          left={<EmptyArrow />}
+          right={
+            <ArrowSegment
+              direction="left"
+              color="amber"
+              amount={`${brokeragePct}% · ${fmtUSD(brokerageAmount)}`}
+              sub="brokerage · one-time · LIVE IP → ALTR"
+            />
+          }
+        />
+
+        {dealType === 'rs' && (
+          <>
+            <FlowRow
+              left={<EmptyArrow />}
+              right={
+                <ArrowSegment
+                  direction="left"
+                  color="mint"
+                  amount="POS revenue"
+                  sub="Lightspeed live feed"
+                />
+              }
+            />
+            <FlowRow
+              left={
+                <ArrowSegment
+                  direction="left"
+                  color="mint"
+                  amount={`${rsRatio}% RS · ~${fmtUSD(rsPerPeriod)}`}
+                  sub={`${frequency.toLowerCase()} via auto-split`}
+                />
+              }
+              right={
+                <ArrowSegment
+                  direction="left"
+                  color="mint"
+                  amount={`${100 - rsRatio}% retained`}
+                  sub="LIVE IP keeps share"
+                />
+              }
+            />
+          </>
+        )}
+      </div>
+    </section>
   )
 }
 
-function BlockCard({ block, ctx }: { block: BlockDef; ctx: BlockCtx }) {
-  const isActive = block.activeFor.includes(ctx.dealType)
-  const cfg = COLORS[block.color]
-
+function ActorCard({
+  kind,
+  name,
+  subtitle,
+  fullName,
+  accent,
+  highlight,
+}: {
+  kind: string
+  name: string
+  subtitle: string
+  fullName?: string
+  accent: BlockColor
+  highlight?: boolean
+}) {
+  const cfg = COLORS[accent]
   return (
     <div
-      className="relative overflow-hidden rounded-lg border transition-all duration-200 ease-out"
+      className="relative rounded-xl border p-3 text-center transition md:p-4"
       style={{
-        borderColor: isActive
-          ? 'rgba(255,255,255,0.08)'
-          : 'rgba(255,255,255,0.03)',
-        background: isActive ? cfg.activeBg : 'rgba(255,255,255,0.02)',
-        opacity: isActive ? 1 : 0.4,
-        minHeight: 48,
+        borderColor: highlight ? cfg.strip + 'aa' : cfg.strip + '40',
+        background: highlight ? cfg.activeBg : 'rgba(255,255,255,0.02)',
+        boxShadow: highlight ? `0 0 0 1px ${cfg.strip}33 inset` : undefined,
       }}
     >
       <span
-        aria-hidden
-        className="absolute left-0 top-0 bottom-0 w-[3px] transition-colors duration-200"
-        style={{ background: isActive ? cfg.strip : '#3a3a3a' }}
-      />
-      <div className="flex items-center justify-between gap-3 pl-5 pr-4 py-2.5">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="inline-flex w-5 flex-shrink-0 justify-center text-[14px] leading-none">
-            {block.icon}
-          </span>
-          <div className="flex min-w-0 flex-col">
-            <span className="truncate font-mono text-[11px] uppercase tracking-[0.15em] text-white">
-              {block.name}
-            </span>
-            {isActive && (
-              <span className="truncate text-[11px] leading-[1.4] text-white/60">
-                {block.describe(ctx)}
-              </span>
-            )}
-          </div>
-        </div>
-        <span
-          className="whitespace-nowrap rounded px-2 py-1 font-mono text-[9.5px] uppercase tracking-[0.15em] transition-colors duration-200"
-          style={
-            isActive
-              ? { background: cfg.badgeBg, color: cfg.badgeText }
-              : {
-                  background: 'rgba(255,255,255,0.04)',
-                  color: 'rgba(255,255,255,0.4)',
-                }
-          }
+        className="font-mono text-[9.5px] uppercase tracking-[0.22em]"
+        style={{ color: cfg.badgeText }}
+      >
+        {kind}
+      </span>
+      <h3 className="mt-1 text-[14px] font-semibold tracking-tight text-white md:text-[15px]">
+        {name}
+      </h3>
+      <p className="mt-0.5 truncate text-[10.5px] text-white/55">{subtitle}</p>
+      {fullName && fullName !== name && (
+        <p
+          className="mt-1 truncate font-mono text-[9px] uppercase tracking-[0.12em] text-white/35"
+          title={fullName}
         >
-          {isActive ? 'ACTIVE' : 'NOT NEEDED'}
+          {fullName}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function FlowRow({
+  left,
+  right,
+}: {
+  left: React.ReactNode
+  right: React.ReactNode
+}) {
+  return (
+    <div className="grid grid-cols-2 items-center gap-2 sm:gap-4">
+      {left}
+      {right}
+    </div>
+  )
+}
+
+function ArrowSegment({
+  direction,
+  color,
+  amount,
+  sub,
+}: {
+  direction: 'right' | 'left'
+  color: 'teal' | 'amber' | 'mint'
+  amount: string
+  sub?: string
+}) {
+  const colorHex =
+    color === 'amber' ? '#EF9F27' : color === 'mint' ? '#A8E6CF' : '#5DCAA5'
+
+  return (
+    <div className="flex flex-col items-center gap-1.5 py-1">
+      <span
+        className="text-center font-mono text-[11px] font-semibold tracking-tight"
+        style={{ color: colorHex }}
+      >
+        {amount}
+      </span>
+      <div
+        className="flex w-full items-center text-[14px] leading-none"
+        style={{ color: colorHex }}
+      >
+        {direction === 'left' && (
+          <span className="-mr-1 flex-shrink-0">◄</span>
+        )}
+        <span
+          className="flex-1 border-t border-dashed"
+          style={{ borderColor: colorHex + '66' }}
+        />
+        {direction === 'right' && (
+          <span className="-ml-1 flex-shrink-0">►</span>
+        )}
+      </div>
+      {sub && (
+        <span className="text-center text-[10.5px] leading-[1.35] text-white/45">
+          {sub}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function EmptyArrow() {
+  return <div className="h-px" />
+}
+
+function CompactRail({ dealType }: { dealType: DealType }) {
+  const activeCount = BLOCKS.filter((b) => b.activeFor.includes(dealType))
+    .length
+
+  return (
+    <section className="mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-4 md:p-5">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/50">
+          Settlement rail
+        </span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
+          {activeCount} / 8 layers active
+        </span>
+      </div>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {BLOCKS.map((block) => (
+          <CompactPill key={block.key} block={block} dealType={dealType} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function CompactPill({
+  block,
+  dealType,
+}: {
+  block: BlockDef
+  dealType: DealType
+}) {
+  const isActive = block.activeFor.includes(dealType)
+  const cfg = COLORS[block.color]
+  return (
+    <div
+      className="rounded-lg border px-3 py-2 transition-all duration-200"
+      style={{
+        borderColor: isActive
+          ? cfg.strip + '55'
+          : 'rgba(255,255,255,0.05)',
+        background: isActive ? cfg.activeBg : 'rgba(255,255,255,0.02)',
+        opacity: isActive ? 1 : 0.45,
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <span className="inline-flex w-4 flex-shrink-0 justify-center text-[13px] leading-none">
+          {block.icon}
+        </span>
+        <span className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-white">
+          {block.name}
+        </span>
+      </div>
+      <div className="mt-1 flex items-center gap-1.5">
+        <span
+          className="h-1 w-1 rounded-full"
+          style={{ background: isActive ? cfg.strip : '#3a3a3a' }}
+        />
+        <span
+          className="font-mono text-[9px] uppercase tracking-[0.15em]"
+          style={{
+            color: isActive ? cfg.badgeText : 'rgba(255,255,255,0.3)',
+          }}
+        >
+          {isActive ? 'active' : 'off'}
         </span>
       </div>
     </div>
   )
 }
 
-function MoatBox({ activeCount }: { activeCount: number }) {
-  return (
-    <div className="mt-3 rounded-lg border border-[#EF9F27]/40 bg-[#2E2410]/50 p-4">
-      <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-[#EF9F27]">
-        {activeCount} / 8 layers active
-      </p>
-      <p className="mt-2 text-[13.5px] font-medium text-white">
-        Revenue Share — most complex deal type
-      </p>
-      <p className="mt-2.5 text-[12.5px] leading-[1.5] text-white/60">
-        Traditional: SWIFT 3–5% · 5–10 days · manual
-      </p>
-      <p className="text-[12.5px] leading-[1.5] text-white/90">
-        altr: USDC rail · ~1.5% · 3 seconds · automatic
-      </p>
-    </div>
-  )
-}
-
 function FeeBreakdown({
   dealValue,
+  dealType,
   role,
+  brokeragePct,
+  brokerageAmount,
 }: {
   dealValue: number
+  dealType: DealType
   role: WaitlistRole
+  brokeragePct: number
+  brokerageAmount: number
 }) {
   const wise = dealValue * 0.008
   const ripple = dealValue * 0.003
@@ -646,10 +828,10 @@ function FeeBreakdown({
   const brokerageHigh = dealValue * 0.15
 
   const isLiveIP = role === 'live-ip'
-  const totalLabel = isLiveIP ? 'Transaction fee' : 'You pay'
+  const totalLabel = isLiveIP ? 'Transaction fee' : 'You pay (rail)'
 
   return (
-    <div className="mt-3 rounded-lg border border-white/[0.06] bg-black/30 p-4">
+    <section className="mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-5 md:p-6">
       <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60">
         Cost breakdown · {fmtUSD(dealValue)} deal · viewing as{' '}
         <span className="text-[#5DCAA5]">
@@ -668,11 +850,14 @@ function FeeBreakdown({
           </p>
           <div className="mt-2 flex flex-col gap-1.5 font-mono text-[12px]">
             <Row
-              left="Brokerage rate"
-              mid="10–15%"
-              right={`${fmtUSD(brokerageLow)}–${fmtUSD(brokerageHigh)}`}
+              left={`Brokerage @ ${brokeragePct}% (range 10–15%)`}
+              mid={`${brokeragePct}%`}
+              right={fmtUSD(brokerageAmount)}
               bold
             />
+            <p className="text-[10.5px] text-white/35">
+              Range: {fmtUSD(brokerageLow)} – {fmtUSD(brokerageHigh)}
+            </p>
           </div>
           <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.22em] text-[#5DCAA5]">
             2 · Transaction fee · per money movement
@@ -684,7 +869,9 @@ function FeeBreakdown({
         </>
       )}
 
-      <div className={`${isLiveIP ? 'mt-2' : 'mt-3'} flex flex-col gap-1.5 font-mono text-[12px]`}>
+      <div
+        className={`${isLiveIP ? 'mt-2' : 'mt-3'} flex flex-col gap-1.5 font-mono text-[12px]`}
+      >
         <Row left="Wise (fiat in + out)" mid="0.4% + 0.4%" right={fmtUSD(wise)} />
         <Row left="Circle USDC" mid="free" right="$0" />
         <Row left="XRPL escrow/settle" mid="$0.0000152" right="~$0" />
@@ -709,7 +896,21 @@ function FeeBreakdown({
           />
         </div>
       </div>
-    </div>
+
+      {dealType === 'rs' && (
+        <div className="mt-5 rounded-lg border border-[#EF9F27]/40 bg-[#2E2410]/50 p-3.5">
+          <p className="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#EF9F27]">
+            Revenue Share — most complex deal type
+          </p>
+          <p className="mt-1.5 text-[12px] leading-[1.5] text-white/60">
+            Traditional: SWIFT 3–5% · 5–10 days · manual
+          </p>
+          <p className="text-[12px] leading-[1.5] text-white">
+            altr: USDC rail · ~1.5% · 3 seconds · automatic
+          </p>
+        </div>
+      )}
+    </section>
   )
 }
 
@@ -761,9 +962,50 @@ function FieldGroup({
         <label className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/55">
           {label}
         </label>
-        {hint && <span className="text-[11.5px] text-white/40">{hint}</span>}
+        {hint && <span className="text-[10.5px] text-white/35">{hint}</span>}
       </div>
       {children}
     </div>
+  )
+}
+
+function SliderField({
+  label,
+  min,
+  max,
+  value,
+  onChange,
+  suffix,
+  accent,
+}: {
+  label: string
+  min: number
+  max: number
+  value: number
+  onChange: (n: number) => void
+  suffix: string
+  accent: string
+}) {
+  return (
+    <FieldGroup label={label}>
+      <div className="flex items-center gap-3 rounded-lg border border-white/[0.08] bg-black/40 px-3 py-2.5">
+        <input
+          type="range"
+          min={min}
+          max={max}
+          value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="flex-1"
+          style={{ accentColor: accent }}
+        />
+        <span
+          className="w-12 text-right font-mono text-[13px]"
+          style={{ color: accent }}
+        >
+          {value}
+          {suffix}
+        </span>
+      </div>
+    </FieldGroup>
   )
 }
