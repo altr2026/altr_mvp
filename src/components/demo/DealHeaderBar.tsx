@@ -200,17 +200,18 @@ function Dot({
     )
   }
   if (isCurrent) {
+    const CURRENT_DOT = '#38E709' // altr-lime — matches LIVE agent dot
     return (
       <span className="relative flex h-5 w-5 items-center justify-center">
         <span
           className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60"
-          style={{ background: layerColor }}
+          style={{ background: CURRENT_DOT }}
         />
         <span
           className="demo-dot-glow relative inline-flex h-5 w-5 rounded-full"
           style={{
-            background: layerColor,
-            boxShadow: `0 0 0 4px ${layerColor}33`,
+            background: CURRENT_DOT,
+            boxShadow: `0 0 0 4px ${CURRENT_DOT}33`,
           }}
         />
       </span>
