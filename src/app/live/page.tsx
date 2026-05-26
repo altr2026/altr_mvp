@@ -1,10 +1,10 @@
 import { StepPlaceholder } from '@/components/demo/StepPlaceholder'
 import { StepShell } from '@/components/demo/StepShell'
 
-export default function Step6Page() {
+export default function LivePage() {
   return (
-    <StepShell currentStep={6}>
-      <StepPlaceholder step={6} />
+    <StepShell currentStep={5}>
+      <StepPlaceholder step={5} />
     </StepShell>
   )
 }

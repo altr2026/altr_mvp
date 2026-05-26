@@ -33,10 +33,10 @@ export function DealPreview({
   const layerLabel = LAYER_LABEL[step.layer]
 
   const goPrev = () => setCurrentStep((s) => Math.max(4, s - 1))
-  const goNext = () => setCurrentStep((s) => Math.min(8, s + 1))
+  const goNext = () => setCurrentStep((s) => Math.min(DEMO_STEPS.length, s + 1))
 
   const atStart = currentStep === 4
-  const atEnd = currentStep === 8
+  const atEnd = currentStep === DEMO_STEPS.length
 
   return (
     <section className="px-6 pt-8 pb-16 md:px-8 md:pt-12 md:pb-24">
