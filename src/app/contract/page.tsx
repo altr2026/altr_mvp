@@ -811,6 +811,12 @@ function EmptyArrow() {
 function CompactRail({ dealType }: { dealType: DealType }) {
   const activeCount = BLOCKS.filter((b) => b.activeFor.includes(dealType))
     .length
+  // Actual settlement flow:
+  //   FIAT IN → USDC → ESCROW  (capital locked)
+  //                      ↓ milestone fires
+  //              TRIGGER → POS API → AUTO-SPLIT → FX → POE
+  const PRE_BLOCKS = BLOCKS.slice(0, 3)
+  const POST_BLOCKS = BLOCKS.slice(3)
 
   return (
     <section className="mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-4 md:p-5">
@@ -822,8 +828,25 @@ function CompactRail({ dealType }: { dealType: DealType }) {
           {activeCount} / 8 layers active
         </span>
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {BLOCKS.map((block) => (
+
+      {/* Stage 1 — capital flows into escrow and locks */}
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {PRE_BLOCKS.map((block) => (
+          <CompactPill key={block.key} block={block} dealType={dealType} />
+        ))}
+      </div>
+
+      {/* Milestone connector — drops from ESCROW into TRIGGER */}
+      <div className="my-2 flex items-center justify-center gap-2">
+        <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-white/40">
+          milestone
+        </span>
+        <span className="text-[13px] leading-none text-white/40">↓</span>
+      </div>
+
+      {/* Stage 2 — trigger fires, sales settle, splits hit accounts */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+        {POST_BLOCKS.map((block) => (
           <CompactPill key={block.key} block={block} dealType={dealType} />
         ))}
       </div>
