@@ -1,6 +1,6 @@
 import { StepFooter } from '@/components/demo/StepFooter'
 import { StepShell } from '@/components/demo/StepShell'
-import { GoldenMatch } from '@/components/step3/GoldenMatch'
+import { ConfirmStage } from '@/components/confirm/ConfirmStage'
 
 export const metadata = {
   title: 'Step 3 — Golden match · ALTR',
@@ -11,7 +11,7 @@ export const metadata = {
 export default function ConfirmPage() {
   return (
     <StepShell currentStep={2}>
-      <GoldenMatch />
+      <ConfirmStage />
       <StepFooter backHref="/match" />
     </StepShell>
   )
