@@ -197,6 +197,13 @@ function RailLayer() {
           targetCurr={targetCurr}
         />
 
+        <NetPosition
+          sponsorshipUsd={sponsorshipUsd}
+          sponsorAtLiveIp={sponsorAtLiveIp}
+          rsToBrandUsd={rsToBrandUsd}
+          liveIpRetainedUsd={liveIpRetainedUsd}
+        />
+
         <WalletCards
           brand={brand}
           matchMeta={matchMeta}
@@ -290,9 +297,12 @@ function Header({
       <p className="text-[13px] leading-[1.55] text-white/55 md:text-[14px]">
         Two distinct streams traverse the rail. The{' '}
         <span className="text-[#5DCAA5]">sponsorship capital</span> moves
-        once, upfront. The{' '}
-        <span className="text-[#A8E6CF]">revenue share</span> trickles in
-        real-time as the event sells, only on RS deals.
+        once, upfront — Brand pays for the presence. The{' '}
+        <span className="text-[#A8E6CF]">revenue share</span> trickles
+        back in real-time as the event sells — Brand earns from
+        performance. On RS deals,{' '}
+        <span className="text-white">both apply simultaneously</span>, so
+        Brand's effective cost is the sponsorship minus what RS recovers.
       </p>
     </header>
   )
@@ -420,12 +430,12 @@ function SponsorshipStream({
           <Node
             icon="↔"
             title="Wise FX"
-            subtitle={`${homeCurr} → USD`}
+            subtitle={`${homeCurr} → USD · external partner`}
             amountIn={fmtLocal(sponsorshipUsd, homeCurr)}
             amountOut={fmtLocal(sponsorAfterWise, 'USD')}
-            fee="−0.4% fee"
+            fee="−0.4% to Wise"
             timing="~3 s"
-            accent="amber"
+            accent="teal"
           />
           <Connector label="converts" />
           <Node
@@ -786,6 +796,126 @@ function SplitBar({
           style={{ width: `${value}%`, background: color }}
         />
       </div>
+    </div>
+  )
+}
+
+function NetPosition({
+  sponsorshipUsd,
+  sponsorAtLiveIp,
+  rsToBrandUsd,
+  liveIpRetainedUsd,
+}: {
+  sponsorshipUsd: number
+  sponsorAtLiveIp: number
+  rsToBrandUsd: number
+  liveIpRetainedUsd: number
+}) {
+  const brandNetCost = sponsorshipUsd - rsToBrandUsd
+  const recoveryPct = (rsToBrandUsd / sponsorshipUsd) * 100
+  const liveIpGross = sponsorAtLiveIp + liveIpRetainedUsd
+
+  return (
+    <section className="mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-5 md:p-6">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/50">
+          Net economic position · RS deal
+        </span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
+          both streams together
+        </span>
+      </div>
+      <p className="mt-1 text-[11.5px] leading-[1.5] text-white/55">
+        On an RS deal, Brand pays the sponsorship AND receives the RS
+        slice. Not double-pay — the RS recovers part of the upfront
+        outlay through performance.
+      </p>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        <div className="rounded-xl border border-[#5DCAA5]/30 bg-black/40 p-4">
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#5DCAA5]">
+            Brand · net cost
+          </span>
+          <div className="mt-3 flex flex-col gap-1.5 font-mono text-[12px]">
+            <NetRow
+              label="Sponsorship paid (out)"
+              value={`−${fmtUSD(sponsorshipUsd)}`}
+              color="#F87171"
+            />
+            <NetRow
+              label={`RS payout received (in, ~${recoveryPct.toFixed(0)}% recovery)`}
+              value={`+${fmtUSD(rsToBrandUsd)}`}
+              color="#5DCAA5"
+            />
+            <hr className="my-1 border-white/[0.06]" />
+            <NetRow
+              label="Effective sponsorship cost"
+              value={`−${fmtUSD(brandNetCost)}`}
+              color="#fff"
+              bold
+            />
+          </div>
+          <p className="mt-3 text-[11px] leading-[1.5] text-white/55">
+            Brand secures presence for {fmtUSD(sponsorshipUsd)} guaranteed,
+            then recoups {fmtUSD(rsToBrandUsd)} from performance. Net out
+            of pocket: {fmtUSD(brandNetCost)}.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-[#5DCAA5]/30 bg-black/40 p-4">
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#5DCAA5]">
+            LIVE IP · gross take
+          </span>
+          <div className="mt-3 flex flex-col gap-1.5 font-mono text-[12px]">
+            <NetRow
+              label="Sponsorship received (Stream A)"
+              value={`+${fmtUSD(sponsorAtLiveIp)}`}
+              color="#5DCAA5"
+            />
+            <NetRow
+              label={`POS retained (Stream B, 85%)`}
+              value={`+${fmtUSD(liveIpRetainedUsd)}`}
+              color="#5DCAA5"
+            />
+            <hr className="my-1 border-white/[0.06]" />
+            <NetRow
+              label="Gross combined revenue"
+              value={`+${fmtUSD(liveIpGross)}`}
+              color="#fff"
+              bold
+            />
+          </div>
+          <p className="mt-3 text-[11px] leading-[1.5] text-white/55">
+            Sponsorship covers fixed costs; POS retain is normal trading.
+            ALTR brokerage commission (10–15%) settles separately,
+            one-time, off-rail.
+          </p>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function NetRow({
+  label,
+  value,
+  color,
+  bold,
+}: {
+  label: string
+  value: string
+  color: string
+  bold?: boolean
+}) {
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <span className="flex-1 truncate text-white/70">{label}</span>
+      <span
+        className={`text-right ${bold ? 'font-semibold' : ''}`}
+        style={{ color }}
+      >
+        {value}
+      </span>
     </div>
   )
 }
