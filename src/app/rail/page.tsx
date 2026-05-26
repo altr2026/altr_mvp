@@ -30,6 +30,24 @@ function targetCurrency(brand: BrandProfile): string {
   return 'USD'
 }
 
+function rateUSD(currency: string): number {
+  // approximate units of {currency} per 1 USD — demo values
+  switch (currency) {
+    case 'KRW': return 1330
+    case 'JPY': return 155
+    case 'CNY': return 7.2
+    case 'TWD': return 32
+    case 'HKD': return 7.8
+    case 'SGD': return 1.34
+    case 'AED': return 3.67
+    case 'SAR': return 3.75
+    case 'EUR': return 0.92
+    case 'USD':
+    case 'USDC':
+    default: return 1
+  }
+}
+
 function parseMaxBudget(range: string): number {
   const matches = range.match(/\$(\d+(?:\.\d+)?)([KMkm])/g)
   if (!matches || matches.length === 0) return 50_000
@@ -54,6 +72,19 @@ function fmtCount(n: number): string {
   return Math.round(n).toLocaleString('en-US')
 }
 
+// Format a local currency amount with its USD equivalent in parens.
+// USDC is 1:1 with USD so no parens needed.
+function fmtLocal(amountInUsd: number, currency: string): string {
+  if (currency === 'USDC') {
+    return `${fmtCount(amountInUsd)} USDC`
+  }
+  if (currency === 'USD') {
+    return fmtUSD(amountInUsd)
+  }
+  const local = amountInUsd * rateUSD(currency)
+  return `${fmtCount(local)} ${currency} · ≈${fmtUSD(amountInUsd)}`
+}
+
 function fmtDate(d: Date): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
@@ -74,6 +105,20 @@ function addDays(d: Date, n: number): Date {
   return nd
 }
 
+// ── Money model ────────────────────────────────────────────────────────────
+// STREAM A: SPONSORSHIP CAPITAL (one-time, Brand → LIVE IP)
+//   Brand deposits sponsorshipUsd in KRW → Wise → USDC → Escrow → Ripple → LIVE IP in AED
+//
+// STREAM B: REVENUE SHARE (RS deal only, real-time during deal period)
+//   POS sales in AED → normalized USDC → AUTO-SPLIT
+//     ├─ rsRatio% → Ripple ODL → Brand wallet (in KRW)   ← THIS is the "RS payout"
+//     └─ (100-rsRatio)% → LIVE IP retains (normal revenue)
+//
+//   The $50K sponsorship is NOT split. The 15/85 split applies only to POS revenue.
+// ───────────────────────────────────────────────────────────────────────────
+
+const POS_REVENUE_MULTIPLE = 4 // demo assumption: POS over deal period ≈ 4× sponsorship
+
 export default function RailPage() {
   return (
     <StepShell currentStep={5}>
@@ -90,7 +135,7 @@ function RailLayer() {
     ? MATCH_META[selectedMatch.id]
     : MATCH_META.frieze
 
-  const dealValue = useMemo(
+  const sponsorshipUsd = useMemo(
     () => parseMaxBudget(brand.budgetRange),
     [brand.budgetRange],
   )
@@ -98,19 +143,20 @@ function RailLayer() {
   const targetCurr = targetCurrency(brand)
   const rsRatio = 15
 
-  const wiseOut = dealValue * 0.996
-  const circleOut = wiseOut
-  const escrowLocked = circleOut
+  // Stream A: sponsorship
+  const sponsorAfterWise = sponsorshipUsd * 0.996 // -0.4%
+  const sponsorAtEscrow = sponsorAfterWise // Circle is 1:1, free
+  const sponsorAtLiveIp = sponsorAtEscrow * 0.997 // Ripple -0.3% to AED
 
-  const liveIPShare = escrowLocked * ((100 - rsRatio) / 100)
-  const brandRSShare = escrowLocked * (rsRatio / 100)
+  // Stream B: revenue share (RS deal only)
+  const posTotalUsd = sponsorshipUsd * POS_REVENUE_MULTIPLE // ≈ $200K
+  const rsToBrandUsd = posTotalUsd * (rsRatio / 100) // ≈ $30K
+  const liveIpRetainedUsd = posTotalUsd - rsToBrandUsd // ≈ $170K
+  const rsToBrandAfterRipple = rsToBrandUsd * 0.997 // -0.3%
 
-  const krwPerUSD = 1330
-  const aedPerUSD = 3.67
-
-  const liveIPAEDApprox = liveIPShare * aedPerUSD
-  const brandRSKRWApprox = brandRSShare * krwPerUSD
-  const dealValueKRW = dealValue * krwPerUSD
+  // ALTR transaction-fee revenue across both streams (0.4%)
+  const altrTxFeesUsd =
+    sponsorshipUsd * 0.004 + rsToBrandUsd * 0.004
 
   const start = quarterStart(matchMeta.timing)
   const handleActivate = () => router.push('/live')
@@ -123,21 +169,30 @@ function RailLayer() {
         <PathOverview
           homeCurr={homeCurr}
           targetCurr={targetCurr}
-          dealValue={dealValue}
+          sponsorshipUsd={sponsorshipUsd}
+          posTotalUsd={posTotalUsd}
+          rsRatio={rsRatio}
         />
 
-        <FlowDiagram
+        <SponsorshipStream
           brand={brand}
           matchMeta={matchMeta}
-          dealValueKRW={dealValueKRW}
-          wiseOut={wiseOut}
-          circleOut={circleOut}
-          escrowLocked={escrowLocked}
+          sponsorshipUsd={sponsorshipUsd}
+          sponsorAfterWise={sponsorAfterWise}
+          sponsorAtEscrow={sponsorAtEscrow}
+          sponsorAtLiveIp={sponsorAtLiveIp}
+          homeCurr={homeCurr}
+          targetCurr={targetCurr}
+        />
+
+        <RevenueShareStream
+          brand={brand}
+          matchMeta={matchMeta}
           rsRatio={rsRatio}
-          liveIPShare={liveIPShare}
-          brandRSShare={brandRSShare}
-          liveIPAEDApprox={liveIPAEDApprox}
-          brandRSKRWApprox={brandRSKRWApprox}
+          posTotalUsd={posTotalUsd}
+          rsToBrandUsd={rsToBrandUsd}
+          liveIpRetainedUsd={liveIpRetainedUsd}
+          rsToBrandAfterRipple={rsToBrandAfterRipple}
           homeCurr={homeCurr}
           targetCurr={targetCurr}
         />
@@ -145,11 +200,10 @@ function RailLayer() {
         <WalletCards
           brand={brand}
           matchMeta={matchMeta}
-          escrowLocked={escrowLocked}
-          liveIPShare={liveIPShare}
-          brandRSShare={brandRSShare}
-          liveIPAEDApprox={liveIPAEDApprox}
-          brandRSKRWApprox={brandRSKRWApprox}
+          sponsorAtLiveIp={sponsorAtLiveIp}
+          liveIpRetainedUsd={liveIpRetainedUsd}
+          rsToBrandAfterRipple={rsToBrandAfterRipple}
+          altrTxFeesUsd={altrTxFeesUsd}
           homeCurr={homeCurr}
           targetCurr={targetCurr}
         />
@@ -158,12 +212,12 @@ function RailLayer() {
           brand={brand}
           matchMeta={matchMeta}
           start={start}
-          dealValue={dealValue}
-          escrowLocked={escrowLocked}
-          rsRatio={rsRatio}
+          sponsorshipUsd={sponsorshipUsd}
+          sponsorAtEscrow={sponsorAtEscrow}
+          rsToBrandUsd={rsToBrandUsd}
         />
 
-        <EscrowDepletion start={start} escrowLocked={escrowLocked} />
+        <EscrowDepletion start={start} sponsorAtEscrow={sponsorAtEscrow} />
 
         <div className="mt-10 flex flex-col items-end gap-3">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/40">
@@ -234,8 +288,11 @@ function Header({
         {matchMeta.shortName}
       </h1>
       <p className="text-[13px] leading-[1.55] text-white/55 md:text-[14px]">
-        Watch how funds traverse the USDC rail. Each crossing is on-chain,
-        costed, and timestamped. No SWIFT, no manual reconciliation.
+        Two distinct streams traverse the rail. The{' '}
+        <span className="text-[#5DCAA5]">sponsorship capital</span> moves
+        once, upfront. The{' '}
+        <span className="text-[#A8E6CF]">revenue share</span> trickles in
+        real-time as the event sells, only on RS deals.
       </p>
     </header>
   )
@@ -244,33 +301,60 @@ function Header({
 function PathOverview({
   homeCurr,
   targetCurr,
-  dealValue,
+  sponsorshipUsd,
+  posTotalUsd,
+  rsRatio,
 }: {
   homeCurr: string
   targetCurr: string
-  dealValue: number
+  sponsorshipUsd: number
+  posTotalUsd: number
+  rsRatio: number
 }) {
-  const steps = [
-    { label: homeCurr, sub: 'origin' },
-    { label: 'USD', sub: 'Wise' },
-    { label: 'USDC', sub: 'Circle' },
-    { label: 'Escrow', sub: 'XRPL' },
-    { label: 'Split', sub: 'auto' },
-    { label: targetCurr, sub: 'AED out' },
-  ]
   return (
-    <section className="mt-6 flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.06] bg-black/30 p-3 md:p-4">
-      <span className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
-        Path
+    <section className="mt-6 flex flex-col gap-2 rounded-2xl border border-white/[0.06] bg-black/30 p-3 md:p-4">
+      <PathRow
+        label="Sponsorship"
+        amount={`${fmtUSD(sponsorshipUsd)} · one-time`}
+        accent="#5DCAA5"
+        steps={[homeCurr, 'USD', 'USDC', 'Escrow', targetCurr]}
+      />
+      <PathRow
+        label="RS revenue"
+        amount={`${rsRatio}% of ~${fmtUSD(posTotalUsd)} POS · real-time`}
+        accent="#A8E6CF"
+        steps={[targetCurr, 'USDC', 'Split', homeCurr]}
+      />
+    </section>
+  )
+}
+
+function PathRow({
+  label,
+  amount,
+  accent,
+  steps,
+}: {
+  label: string
+  amount: string
+  accent: string
+  steps: string[]
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span
+        className="shrink-0 font-mono text-[10px] uppercase tracking-[0.22em]"
+        style={{ color: accent }}
+      >
+        {label}
       </span>
       <div className="flex flex-1 flex-wrap items-center gap-1.5">
         {steps.map((s, i) => (
-          <span key={s.label} className="flex items-center gap-1.5">
+          <span key={s + i} className="flex items-center gap-1.5">
             <span
               className="rounded border border-white/[0.08] bg-black/40 px-2 py-1 font-mono text-[10.5px] text-white/85"
-              title={s.sub}
             >
-              {s.label}
+              {s}
             </span>
             {i < steps.length - 1 && (
               <span className="text-white/30">→</span>
@@ -278,10 +362,288 @@ function PathOverview({
           </span>
         ))}
       </div>
-      <span className="shrink-0 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#5DCAA5]">
-        {fmtUSD(dealValue)} deal
+      <span
+        className="shrink-0 font-mono text-[10.5px] uppercase tracking-[0.18em]"
+        style={{ color: accent }}
+      >
+        {amount}
       </span>
+    </div>
+  )
+}
+
+type NodeAccent = 'teal' | 'lightgreen' | 'amber'
+
+function SponsorshipStream({
+  brand,
+  matchMeta,
+  sponsorshipUsd,
+  sponsorAfterWise,
+  sponsorAtEscrow,
+  sponsorAtLiveIp,
+  homeCurr,
+  targetCurr,
+}: {
+  brand: BrandProfile
+  matchMeta: MatchMeta
+  sponsorshipUsd: number
+  sponsorAfterWise: number
+  sponsorAtEscrow: number
+  sponsorAtLiveIp: number
+  homeCurr: string
+  targetCurr: string
+}) {
+  return (
+    <section
+      className="relative mt-6 rounded-2xl border bg-black/30 p-5 md:p-6"
+      style={{ borderColor: 'rgba(93,202,165,0.25)' }}
+    >
+      <SectionLabel
+        index="A"
+        title="Sponsorship capital · one-time"
+        accent="#5DCAA5"
+        sub={`${fmtUSD(sponsorshipUsd)} leaves Brand · ~${fmtUSD(sponsorAtLiveIp)} arrives at LIVE IP after fees`}
+      />
+
+      <div className="relative mt-5">
+        <RailColumn />
+        <div className="flex flex-col gap-3 sm:pl-10">
+          <Node
+            icon="◉"
+            title={brand.brandName || 'Brand'}
+            subtitle="origin wallet"
+            amountOut={fmtLocal(sponsorshipUsd, homeCurr)}
+            timing="t = 0"
+            accent="teal"
+          />
+          <Connector label="deposits" />
+          <Node
+            icon="↔"
+            title="Wise FX"
+            subtitle={`${homeCurr} → USD`}
+            amountIn={fmtLocal(sponsorshipUsd, homeCurr)}
+            amountOut={fmtLocal(sponsorAfterWise, 'USD')}
+            fee="−0.4% fee"
+            timing="~3 s"
+            accent="amber"
+          />
+          <Connector label="converts" />
+          <Node
+            icon="⬡"
+            title="Circle Mint"
+            subtitle="USD → USDC"
+            amountIn={fmtLocal(sponsorAfterWise, 'USD')}
+            amountOut={fmtLocal(sponsorAtEscrow, 'USDC')}
+            fee="free"
+            timing="<1 s"
+            accent="teal"
+          />
+          <Connector label="mints" />
+          <Node
+            icon="🔒"
+            title="XRPL Escrow"
+            subtitle="locked on-chain · sponsorship capital"
+            amountOut={fmtLocal(sponsorAtEscrow, 'USDC')}
+            fee="$0.0000152 fee"
+            timing="3 s · permanent"
+            accent="amber"
+            glow
+          >
+            <p className="mt-2 text-[11px] leading-[1.5] text-[#EF9F27]/85">
+              Hash-locked. Releases per milestone schedule (M1 · M2 · M3).
+              This pool holds ONLY the sponsorship $50K — RS payouts use a
+              separate stream below.
+            </p>
+          </Node>
+          <Connector label="releases per milestone" />
+          <Node
+            icon="↗"
+            title="Ripple ODL"
+            subtitle={`USDC → ${targetCurr}`}
+            amountIn={fmtLocal(sponsorAtEscrow, 'USDC')}
+            amountOut={fmtLocal(sponsorAtLiveIp, targetCurr)}
+            fee="−0.3% fee"
+            timing="~2 s"
+            accent="teal"
+          />
+          <Connector label="settles" />
+          <Node
+            icon="◉"
+            title={matchMeta.shortName}
+            subtitle="LIVE IP wallet · sponsorship received"
+            amountOut={fmtLocal(sponsorAtLiveIp, targetCurr)}
+            timing="received"
+            accent="teal"
+          />
+        </div>
+      </div>
     </section>
+  )
+}
+
+function RevenueShareStream({
+  brand,
+  matchMeta,
+  rsRatio,
+  posTotalUsd,
+  rsToBrandUsd,
+  liveIpRetainedUsd,
+  rsToBrandAfterRipple,
+  homeCurr,
+  targetCurr,
+}: {
+  brand: BrandProfile
+  matchMeta: MatchMeta
+  rsRatio: number
+  posTotalUsd: number
+  rsToBrandUsd: number
+  liveIpRetainedUsd: number
+  rsToBrandAfterRipple: number
+  homeCurr: string
+  targetCurr: string
+}) {
+  return (
+    <section
+      className="relative mt-6 rounded-2xl border bg-black/30 p-5 md:p-6"
+      style={{ borderColor: 'rgba(168,230,207,0.25)' }}
+    >
+      <SectionLabel
+        index="B"
+        title="Revenue share · real-time"
+        accent="#A8E6CF"
+        sub={`POS revenue auto-splits live · ${rsRatio}% to Brand · ${100 - rsRatio}% retained by LIVE IP · only on RS deals`}
+      />
+
+      <div className="relative mt-5">
+        <RailColumn />
+        <div className="flex flex-col gap-3 sm:pl-10">
+          <Node
+            icon="📊"
+            title={`${matchMeta.shortName} POS`}
+            subtitle={`Lightspeed feed · live sales in ${targetCurr}`}
+            amountOut={`~${fmtLocal(posTotalUsd, targetCurr)} over deal period`}
+            fee="estimated"
+            timing="real-time"
+            accent="lightgreen"
+          >
+            <p className="mt-2 text-[11px] leading-[1.5] text-white/55">
+              Estimate ~{POS_REVENUE_MULTIPLE}× sponsorship based on
+              comparable activations. Actual splits accrue per-sale.
+            </p>
+          </Node>
+          <Connector label="per sale" />
+          <Node
+            icon="÷"
+            title="AUTO-SPLIT"
+            subtitle={`${rsRatio}% RS · ${100 - rsRatio}% retained · rule-based on-chain`}
+            amountIn={`~${fmtLocal(posTotalUsd, targetCurr)} (cumulative)`}
+            fee="rule-based"
+            timing="~1 s / sale"
+            accent="lightgreen"
+          >
+            <div className="mt-3 flex flex-col gap-1.5">
+              <SplitBar
+                label={`${100 - rsRatio}% LIVE IP retains`}
+                value={100 - rsRatio}
+                color="#5DCAA5"
+                amount={fmtLocal(liveIpRetainedUsd, targetCurr)}
+              />
+              <SplitBar
+                label={`${rsRatio}% to Brand (RS payout)`}
+                value={rsRatio}
+                color="#A8E6CF"
+                amount={fmtLocal(rsToBrandUsd, targetCurr)}
+              />
+            </div>
+          </Node>
+
+          <div className="mt-2 grid gap-3 sm:grid-cols-2">
+            <Node
+              icon="↗"
+              title="Ripple ODL"
+              subtitle={`USDC → ${homeCurr} · Brand RS path`}
+              amountIn={fmtLocal(rsToBrandUsd, 'USDC')}
+              amountOut={fmtLocal(rsToBrandAfterRipple, homeCurr)}
+              fee="−0.3% fee"
+              timing="~2 s"
+              accent="lightgreen"
+            />
+            <Node
+              icon="◉"
+              title={matchMeta.shortName}
+              subtitle={`${100 - rsRatio}% retained · stays in LIVE IP's ${targetCurr} account`}
+              amountOut={fmtLocal(liveIpRetainedUsd, targetCurr)}
+              timing="real-time"
+              accent="teal"
+            />
+            <Node
+              icon="◉"
+              title={brand.brandName || 'Brand'}
+              subtitle={`Brand wallet · RS received in ${homeCurr}`}
+              amountOut={fmtLocal(rsToBrandAfterRipple, homeCurr)}
+              timing="ongoing"
+              accent="teal"
+            />
+            <div className="rounded-xl border border-white/[0.06] bg-black/40 p-3.5 md:p-4">
+              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
+                Why two streams?
+              </p>
+              <p className="mt-2 text-[11.5px] leading-[1.5] text-white/65">
+                Sponsorship is what the Brand pre-pays for{' '}
+                <span className="text-white">presence</span>. Revenue
+                share is what they earn back from{' '}
+                <span className="text-white">performance</span>. They flow
+                in opposite directions on different timelines.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function RailColumn() {
+  return (
+    <div className="pointer-events-none absolute left-3 top-0 bottom-0 hidden w-1.5 sm:block">
+      <div className="absolute inset-0 rounded-full bg-white/[0.04]" />
+      <div
+        className="altr-dot absolute h-2.5 w-2.5 -translate-x-[2px] rounded-full"
+        style={{
+          background: '#5DCAA5',
+          boxShadow: '0 0 12px 2px rgba(93,202,165,0.6)',
+        }}
+      />
+    </div>
+  )
+}
+
+function SectionLabel({
+  index,
+  title,
+  accent,
+  sub,
+}: {
+  index: string
+  title: string
+  accent: string
+  sub: string
+}) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-3">
+      <span
+        className="rounded px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em]"
+        style={{ background: accent + '22', color: accent }}
+      >
+        Stream {index}
+      </span>
+      <h2 className="text-[14.5px] font-semibold tracking-tight text-white">
+        {title}
+      </h2>
+      <span className="w-full text-[11.5px] leading-[1.5] text-white/55 sm:w-auto sm:flex-1">
+        {sub}
+      </span>
+    </div>
   )
 }
 
@@ -293,178 +655,9 @@ type NodeProps = {
   amountOut?: string
   fee?: string
   timing?: string
-  accent?: 'teal' | 'lightgreen' | 'amber'
+  accent?: NodeAccent
   glow?: boolean
   children?: React.ReactNode
-}
-
-function FlowDiagram({
-  brand,
-  matchMeta,
-  dealValueKRW,
-  wiseOut,
-  circleOut,
-  escrowLocked,
-  rsRatio,
-  liveIPShare,
-  brandRSShare,
-  liveIPAEDApprox,
-  brandRSKRWApprox,
-  homeCurr,
-  targetCurr,
-}: {
-  brand: BrandProfile
-  matchMeta: MatchMeta
-  dealValueKRW: number
-  wiseOut: number
-  circleOut: number
-  escrowLocked: number
-  rsRatio: number
-  liveIPShare: number
-  brandRSShare: number
-  liveIPAEDApprox: number
-  brandRSKRWApprox: number
-  homeCurr: string
-  targetCurr: string
-}) {
-  return (
-    <section className="relative mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-5 md:p-6">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/50">
-          Flow diagram
-        </span>
-        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
-          on-chain · USDC-anchored
-        </span>
-      </div>
-
-      <div className="relative mt-5">
-        <div className="pointer-events-none absolute left-3 top-0 bottom-0 hidden w-1.5 sm:block">
-          <div className="absolute inset-0 rounded-full bg-white/[0.04]" />
-          <div
-            className="altr-dot absolute h-2.5 w-2.5 -translate-x-[2px] rounded-full"
-            style={{
-              background: '#5DCAA5',
-              boxShadow: '0 0 12px 2px rgba(93,202,165,0.6)',
-            }}
-          />
-        </div>
-
-        <div className="flex flex-col gap-3 sm:pl-10">
-          <Node
-            icon="◉"
-            title={brand.brandName || 'Brand'}
-            subtitle="origin wallet"
-            amountOut={`${fmtCount(dealValueKRW)} ${homeCurr}`}
-            timing="t = 0"
-            accent="teal"
-          />
-          <Connector label="deposits" />
-          <Node
-            icon="↔"
-            title="Wise FX"
-            subtitle={`${homeCurr} → USD`}
-            amountIn={`${fmtCount(dealValueKRW)} ${homeCurr}`}
-            amountOut={`${fmtUSD(wiseOut)} USD`}
-            fee="−0.4% fee"
-            timing="~3 s"
-            accent="amber"
-          />
-          <Connector label="converts" />
-          <Node
-            icon="⬡"
-            title="Circle Mint"
-            subtitle="USD → USDC"
-            amountIn={`${fmtUSD(wiseOut)} USD`}
-            amountOut={`${fmtCount(circleOut)} USDC`}
-            fee="free"
-            timing="<1 s"
-            accent="teal"
-          />
-          <Connector label="mints" />
-          <Node
-            icon="🔒"
-            title="XRPL Escrow"
-            subtitle="locked on-chain"
-            amountOut={`${fmtCount(escrowLocked)} USDC`}
-            fee="$0.0000152 fee"
-            timing="3 s · permanent"
-            accent="amber"
-            glow
-          >
-            <p className="mt-2 text-[11px] leading-[1.5] text-[#EF9F27]/85">
-              Hash-locked. Releases only on milestone trigger or RS payout
-              schedule. Anchored receipts.
-            </p>
-          </Node>
-          <Connector label="triggers" />
-          <Node
-            icon="÷"
-            title="AUTO-SPLIT"
-            subtitle={`${rsRatio}% RS · ${100 - rsRatio}% IP retained`}
-            amountIn={`${fmtCount(escrowLocked)} USDC`}
-            fee="rule-based"
-            timing="~1 s"
-            accent="lightgreen"
-          >
-            <div className="mt-3 flex flex-col gap-1.5">
-              <SplitBar
-                label={`LIVE IP retains · ${100 - rsRatio}%`}
-                value={100 - rsRatio}
-                color="#5DCAA5"
-                amount={`${fmtCount(liveIPShare)} USDC`}
-              />
-              <SplitBar
-                label={`Brand RS · ${rsRatio}%`}
-                value={rsRatio}
-                color="#A8E6CF"
-                amount={`${fmtCount(brandRSShare)} USDC`}
-              />
-            </div>
-          </Node>
-        </div>
-
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 sm:pl-10">
-          <Node
-            icon="↗"
-            title="Ripple ODL → LIVE IP"
-            subtitle={`USDC → ${targetCurr}`}
-            amountIn={`${fmtCount(liveIPShare)} USDC`}
-            amountOut={`${fmtCount(liveIPAEDApprox)} ${targetCurr}`}
-            fee="0.3% fee"
-            timing="~2 s"
-            accent="teal"
-          />
-          <Node
-            icon="↗"
-            title="Ripple ODL → Brand"
-            subtitle={`USDC → ${homeCurr} (RS share)`}
-            amountIn={`${fmtCount(brandRSShare)} USDC`}
-            amountOut={`${fmtCount(brandRSKRWApprox)} ${homeCurr}`}
-            fee="0.3% fee"
-            timing="~2 s"
-            accent="teal"
-          />
-          <Node
-            icon="◉"
-            title={matchMeta.shortName}
-            subtitle="LIVE IP wallet"
-            amountOut={`${fmtCount(liveIPAEDApprox)} ${targetCurr}`}
-            timing="received"
-            accent="teal"
-          />
-          <Node
-            icon="◉"
-            title={brand.brandName || 'Brand'}
-            subtitle="Brand wallet (RS)"
-            amountOut={`${fmtCount(brandRSKRWApprox)} ${homeCurr}`}
-            timing="received"
-            accent="teal"
-          />
-        </div>
-      </div>
-    </section>
-  )
 }
 
 function Node({
@@ -520,7 +713,7 @@ function Node({
           <p className="mt-0.5 text-[11.5px] text-white/55">{subtitle}</p>
 
           {(amountIn || amountOut || fee) && (
-            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px]">
+            <div className="mt-2 flex flex-col gap-1 font-mono text-[11px]">
               {amountIn && (
                 <span className="text-white/45">
                   in · <span className="text-white/85">{amountIn}</span>
@@ -539,7 +732,7 @@ function Node({
               )}
               {fee && (
                 <span
-                  className="rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-[0.1em]"
+                  className="mt-1 inline-flex w-fit rounded border px-1.5 py-0.5 text-[10px] uppercase tracking-[0.1em]"
                   style={{
                     borderColor: c.border,
                     color: c.text,
@@ -600,52 +793,49 @@ function SplitBar({
 function WalletCards({
   brand,
   matchMeta,
-  escrowLocked,
-  liveIPShare,
-  brandRSShare,
-  liveIPAEDApprox,
-  brandRSKRWApprox,
+  sponsorAtLiveIp,
+  liveIpRetainedUsd,
+  rsToBrandAfterRipple,
+  altrTxFeesUsd,
   homeCurr,
   targetCurr,
 }: {
   brand: BrandProfile
   matchMeta: MatchMeta
-  escrowLocked: number
-  liveIPShare: number
-  brandRSShare: number
-  liveIPAEDApprox: number
-  brandRSKRWApprox: number
+  sponsorAtLiveIp: number
+  liveIpRetainedUsd: number
+  rsToBrandAfterRipple: number
+  altrTxFeesUsd: number
   homeCurr: string
   targetCurr: string
 }) {
+  const liveIpTotalUsd = sponsorAtLiveIp + liveIpRetainedUsd
+
   return (
     <section className="mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-5 md:p-6">
       <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/50">
-        Wallets · current balances
+        Wallets · projected end-of-deal balances
       </span>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         <WalletCard
           name={brand.brandName || 'Brand'}
           kind="Brand"
-          amount={`${fmtCount(brandRSKRWApprox)} ${homeCurr}`}
-          subAmount={`≈ ${fmtUSD(brandRSShare)} USDC`}
-          note="RS payouts received"
+          amount={fmtLocal(rsToBrandAfterRipple, homeCurr)}
+          note={`RS payouts received (Stream B · ${homeCurr})`}
           accent="teal"
         />
         <WalletCard
           name={matchMeta.shortName}
           kind="LIVE IP"
-          amount={`${fmtCount(liveIPAEDApprox)} ${targetCurr}`}
-          subAmount={`≈ ${fmtUSD(liveIPShare)} USDC`}
-          note="sponsorship received"
+          amount={fmtLocal(liveIpTotalUsd, targetCurr)}
+          note={`Sponsorship (${fmtUSD(sponsorAtLiveIp)}) + POS retained (${fmtUSD(liveIpRetainedUsd)})`}
           accent="teal"
         />
         <WalletCard
           name="ALTR Treasury"
           kind="ALTR"
-          amount={`${fmtUSD(escrowLocked * 0.004)} USDC`}
-          subAmount="transaction fees (0.4%)"
-          note="brokerage settled separately"
+          amount={fmtLocal(altrTxFeesUsd, 'USDC')}
+          note="Transaction fees (0.4%) on both streams · brokerage settled separately"
           accent="amber"
         />
       </div>
@@ -657,14 +847,12 @@ function WalletCard({
   name,
   kind,
   amount,
-  subAmount,
   note,
   accent,
 }: {
   name: string
   kind: string
   amount: string
-  subAmount: string
   note: string
   accent: 'teal' | 'amber'
 }) {
@@ -682,23 +870,23 @@ function WalletCard({
           {kind}
         </span>
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
-          live
+          projected
         </span>
       </div>
       <h4 className="mt-2 truncate text-[13.5px] font-semibold text-white">
         {name}
       </h4>
-      <p className="mt-3 font-mono text-[18px] font-semibold tracking-tight text-white">
+      <p className="mt-3 font-mono text-[15px] font-semibold tracking-tight text-white">
         {amount}
       </p>
-      <p className="mt-0.5 font-mono text-[11px] text-white/45">{subAmount}</p>
-      <p className="mt-2 text-[11px] text-white/55">{note}</p>
+      <p className="mt-2 text-[11px] leading-[1.5] text-white/55">{note}</p>
     </div>
   )
 }
 
 type ScheduleRow = {
   date: Date
+  stream: 'A' | 'B'
   from: string
   to: string
   amount: string
@@ -710,75 +898,91 @@ function SettlementSchedule({
   brand,
   matchMeta,
   start,
-  dealValue,
-  escrowLocked,
-  rsRatio,
+  sponsorshipUsd,
+  sponsorAtEscrow,
+  rsToBrandUsd,
 }: {
   brand: BrandProfile
   matchMeta: MatchMeta
   start: Date
-  dealValue: number
-  escrowLocked: number
-  rsRatio: number
+  sponsorshipUsd: number
+  sponsorAtEscrow: number
+  rsToBrandUsd: number
 }) {
   const brandShort = (brand.brandName || 'Brand').split(' ')[0]
   const ipShort = matchMeta.shortName.split(' ')[0]
 
-  const rsPayout = escrowLocked * (rsRatio / 100) * 0.25
+  const rsPerMonth = rsToBrandUsd / 3
 
   const rows: ScheduleRow[] = [
     {
       date: addDays(start, -7),
+      stream: 'A',
       from: brandShort,
       to: 'Wise',
-      amount: `${fmtUSD(dealValue)} → USD`,
+      amount: `${fmtUSD(sponsorshipUsd)} → USD`,
       status: 'settled',
     },
     {
       date: addDays(start, -7),
+      stream: 'A',
       from: 'Wise',
       to: 'Circle',
-      amount: `${fmtUSD(dealValue * 0.996)} → USDC`,
+      amount: `${fmtUSD(sponsorshipUsd * 0.996)} → USDC`,
       status: 'settled',
     },
     {
       date: addDays(start, -7),
+      stream: 'A',
       from: 'Circle',
       to: 'XRPL Escrow',
-      amount: `${fmtCount(escrowLocked)} USDC locked`,
+      amount: `${fmtCount(sponsorAtEscrow)} USDC locked`,
       status: 'settled',
-      note: 'milestone trigger armed',
+      note: 'M1 / M2 / M3 trigger armed',
     },
     {
       date: addDays(start, 1),
+      stream: 'A',
       from: 'Escrow',
       to: ipShort,
-      amount: `${fmtCount(escrowLocked * 0.5)} USDC`,
+      amount: `${fmtCount(sponsorAtEscrow * 0.5)} USDC → AED`,
       status: 'settled',
-      note: 'M1 booth-setup release',
+      note: 'M1 sponsorship release',
     },
     {
       date: addDays(start, 30),
+      stream: 'B',
       from: 'POS',
       to: 'Auto-split',
-      amount: `${fmtCount(rsPayout)} USDC`,
+      amount: `~${fmtUSD(rsPerMonth)} (month 1 RS)`,
       status: 'pending',
-      note: 'M2 month-1 RS',
+      note: 'real-time accrual',
+    },
+    {
+      date: addDays(start, 30),
+      stream: 'B',
+      from: 'Auto-split',
+      to: `${brandShort} · RS`,
+      amount: `~${fmtUSD(rsPerMonth)} → KRW`,
+      status: 'pending',
     },
     {
       date: addDays(start, 60),
+      stream: 'B',
       from: 'Auto-split',
       to: `${brandShort} · RS`,
-      amount: `${fmtCount(rsPayout * (rsRatio / 100))} USDC`,
+      amount: `~${fmtUSD(rsPerMonth)} → KRW`,
       status: 'scheduled',
+      note: 'month 2 RS',
     },
     {
       date: addDays(start, 90),
+      stream: 'A',
       from: 'Escrow',
       to: ipShort,
-      amount: `${fmtCount(escrowLocked * 0.5)} USDC`,
+      amount: `${fmtCount(sponsorAtEscrow * 0.5)} USDC → AED`,
       status: 'scheduled',
-      note: 'M3 campaign-end release',
+      note: 'M3 final sponsorship release',
     },
   ]
 
@@ -789,14 +993,15 @@ function SettlementSchedule({
           Settlement schedule
         </span>
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
-          each crossing · timestamped
+          Stream A · sponsorship  ·  Stream B · RS
         </span>
       </div>
       <div className="mt-3 overflow-x-auto">
-        <table className="w-full min-w-[640px] border-separate border-spacing-y-1.5 text-[12px]">
+        <table className="w-full min-w-[720px] border-separate border-spacing-y-1.5 text-[12px]">
           <thead>
             <tr className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">
               <th className="px-2 py-1 text-left">Date</th>
+              <th className="px-2 py-1 text-left">Stream</th>
               <th className="px-2 py-1 text-left">From → To</th>
               <th className="px-2 py-1 text-left">Amount</th>
               <th className="px-2 py-1 text-left">Status</th>
@@ -824,10 +1029,23 @@ function ScheduleTr({ row }: { row: ScheduleRow }) {
     },
   }[row.status]
 
+  const streamCfg =
+    row.stream === 'A'
+      ? { color: '#5DCAA5', label: 'A · sponsor' }
+      : { color: '#A8E6CF', label: 'B · RS' }
+
   return (
     <tr className="text-white/85">
       <td className="rounded-l-lg border-y border-l border-white/[0.06] bg-black/40 px-3 py-2.5 font-mono text-[11.5px] text-white/70">
         {fmtDate(row.date)}
+      </td>
+      <td className="border-y border-white/[0.06] bg-black/40 px-3 py-2.5">
+        <span
+          className="rounded px-1.5 py-0.5 font-mono text-[9.5px] uppercase tracking-[0.15em]"
+          style={{ background: streamCfg.color + '22', color: streamCfg.color }}
+        >
+          {streamCfg.label}
+        </span>
       </td>
       <td className="border-y border-white/[0.06] bg-black/40 px-3 py-2.5">
         <span className="font-mono text-[11.5px] text-white/85">
@@ -866,16 +1084,14 @@ function ScheduleTr({ row }: { row: ScheduleRow }) {
 
 function EscrowDepletion({
   start,
-  escrowLocked,
+  sponsorAtEscrow,
 }: {
   start: Date
-  escrowLocked: number
+  sponsorAtEscrow: number
 }) {
   const snapshots = [
     { date: addDays(start, -7), pct: 100, label: 'locked' },
-    { date: addDays(start, 1), pct: 50, label: 'M1 released' },
-    { date: addDays(start, 30), pct: 47, label: 'M2 RS slice' },
-    { date: addDays(start, 60), pct: 44, label: 'M2 cont.' },
+    { date: addDays(start, 1), pct: 50, label: 'M1 released (50%)' },
     { date: addDays(start, 90), pct: 0, label: 'M3 final' },
   ]
 
@@ -883,17 +1099,21 @@ function EscrowDepletion({
     <section className="mt-6 rounded-2xl border border-white/[0.06] bg-black/30 p-5 md:p-6">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-white/50">
-          Escrow depletion
+          Sponsorship escrow depletion
         </span>
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
-          {fmtCount(escrowLocked)} USDC starting
+          {fmtCount(sponsorAtEscrow)} USDC starting · Stream A only
         </span>
       </div>
+      <p className="mt-1 text-[11.5px] leading-[1.5] text-white/45">
+        Tracks the upfront sponsorship pool only. RS revenue (Stream B) is
+        pass-through real-time, no escrow involved.
+      </p>
       <div className="mt-4 flex flex-col gap-2.5">
         {snapshots.map((s, i) => (
           <div
             key={i}
-            className="grid grid-cols-[80px_1fr_120px] items-center gap-3"
+            className="grid grid-cols-[80px_1fr_180px] items-center gap-3"
           >
             <span className="font-mono text-[11px] text-white/55">
               {fmtDate(s.date)}
@@ -916,7 +1136,7 @@ function EscrowDepletion({
             </div>
             <span className="text-right font-mono text-[11px] text-white/70">
               <span className="text-white/95">
-                {fmtCount(escrowLocked * (s.pct / 100))}
+                {fmtCount(sponsorAtEscrow * (s.pct / 100))} USDC
               </span>{' '}
               · {s.label}
             </span>
