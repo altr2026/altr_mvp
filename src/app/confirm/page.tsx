@@ -7,9 +7,9 @@ export const metadata = {
     'Mutual confirm. Both sides accepted. Audience fit verified. RS model agreed.',
 }
 
-export default function Step3Page() {
+export default function ConfirmPage() {
   return (
-    <StepShell currentStep={3}>
+    <StepShell currentStep={2}>
       <GoldenMatch />
     </StepShell>
   )

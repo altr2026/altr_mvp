@@ -170,9 +170,9 @@ const FREQUENCY_OPTIONS = ['Daily', 'Weekly', 'Bi-weekly', 'Monthly', 'Quarterly
 const triggerClass =
   'rounded-lg border border-white/[0.08] bg-black/40 px-3 py-2.5 text-[13px] text-white focus:border-[#5DCAA5]/60 focus:outline-none'
 
-export default function Step4Page() {
+export default function ContractPage() {
   return (
-    <StepShell currentStep={4}>
+    <StepShell currentStep={3}>
       <ContractLayer />
     </StepShell>
   )
@@ -246,7 +246,7 @@ function ContractLayer() {
   const handleLock = () => {
     if (generating) return
     setGenerating(true)
-    window.setTimeout(() => router.push('/rail'), 1100)
+    window.setTimeout(() => router.push('/live'), 1100)
   }
 
   return (
@@ -304,7 +304,7 @@ function ContractLayer() {
         <div className="mt-10 flex flex-col items-end gap-3">
           {generating && (
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#5DCAA5]">
-              Deal locked · Settlement rail configured
+              Deal locked · Activation window opening
             </p>
           )}
           <button
@@ -313,7 +313,7 @@ function ContractLayer() {
             disabled={generating}
             className="rounded-lg bg-[#5DCAA5] px-6 py-3 text-[13px] font-semibold text-[#06120E] transition hover:bg-[#7BD7B7] disabled:cursor-wait disabled:opacity-60"
           >
-            Lock deal &amp; configure rail →
+            Activate deal &amp; go LIVE →
           </button>
         </div>
       </div>

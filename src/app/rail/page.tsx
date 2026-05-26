@@ -159,7 +159,7 @@ function RailLayer() {
     sponsorshipUsd * 0.004 + rsToBrandUsd * 0.004
 
   const start = quarterStart(matchMeta.timing)
-  const handleActivate = () => router.push('/live')
+  const handleNext = () => router.push('/report')
 
   return (
     <div className="px-6 pb-24 pt-6 md:px-8">
@@ -228,14 +228,14 @@ function RailLayer() {
 
         <div className="mt-10 flex flex-col items-end gap-3">
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/40">
-            Rail dry-run complete · Ready to go live
+            All milestones settled · Ready to close loop
           </p>
           <button
             type="button"
-            onClick={handleActivate}
+            onClick={handleNext}
             className="rounded-lg bg-[#5DCAA5] px-6 py-3 text-[13px] font-semibold text-[#06120E] transition hover:bg-[#7BD7B7]"
           >
-            Activate deal →
+            Generate ROI report →
           </button>
         </div>
       </div>
