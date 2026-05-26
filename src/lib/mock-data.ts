@@ -1094,19 +1094,19 @@ const mockInsights: Insight[] = [
     id: 'i_gcc_2025',
     category: 'Market data',
     publishedAt: '2026-04-18',
-    title: 'GCC sponsorship hits 6.88 billion in 2025',
+    title: 'Saudi entertainment crosses SAR 20B — and the capital is still landing',
     summary:
-      'Saudi Arabia and the UAE drove twelve percent of new deal volume across music and sports.',
-    href: '/insights',
+      "A near-zero industry in 2018 now anchors $5–6B in annual leisure spend. Riyadh Season alone pulled 11M+ visitors in 2025; another $13B has just been committed.",
+    href: '/insights/gcc-sponsorship-2025',
   },
   {
     id: 'i_apac_gcc_pricing',
     category: 'Pricing',
     publishedAt: '2026-03-22',
-    title: 'Festival pricing benchmarks across ASIA',
+    title: 'How festival sponsorship pricing splits across ASIA',
     summary:
-      'Title sponsorships in Seoul run thirty percent below Dubai for the same audience size.',
-    href: '/insights',
+      'Mature APAC (Japan, Korea, HK) and emerging GCC sell the same audience size at very different price tags. The ROI math is even further apart.',
+    href: '/insights/asia-pricing-benchmarks',
   },
   {
     id: 'i_ksa_frontier',
@@ -1114,8 +1114,8 @@ const mockInsights: Insight[] = [
     publishedAt: '2026-02-09',
     title: 'Why Saudi Arabia is the next sponsorship frontier',
     summary:
-      'Vision 2030 and a young population are pulling global brands into the kingdom.',
-    href: '/insights',
+      "Vision 2030, Expo 2030, FIFA 2034, and $13.3B already committed to leisure CAPEX. Brands that aren't booking GCC pipeline now are booking too late.",
+    href: '/insights/saudi-frontier',
   },
 ]
 

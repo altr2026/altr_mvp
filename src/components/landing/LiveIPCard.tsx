@@ -132,11 +132,6 @@ export function LiveIPCard({ rightHolder: rh }: Props) {
         </div>
       </div>
 
-      <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-2">
-        <span className="translate-y-2 rounded-full bg-altr-mint/90 px-3 py-1 font-mono text-[10px] tracking-[0.18em] text-altr-bg uppercase opacity-0 backdrop-blur transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-          View details →
-        </span>
-      </div>
     </Link>
   )
 }

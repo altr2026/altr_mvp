@@ -28,9 +28,10 @@ export function FromTheLab({ insights }: Props) {
 
         <div className="mt-10 grid grid-cols-1 gap-5 md:grid-cols-3">
           {insights.map((insight) => (
-            <article
+            <Link
               key={insight.id}
-              className="flex flex-col rounded-xl border border-white/[0.06] bg-altr-card p-6 transition hover:border-altr-mint-bright/30"
+              href={insight.href}
+              className="group flex flex-col rounded-xl border border-white/[0.06] bg-altr-card p-6 transition hover:border-altr-mint-bright/30 hover:bg-altr-card/80"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-altr-mint-bright">
@@ -46,13 +47,10 @@ export function FromTheLab({ insights }: Props) {
               <p className="mt-3 flex-1 text-[14px] leading-[1.55] text-altr-text-2">
                 {insight.summary}
               </p>
-              <Link
-                href={insight.href}
-                className="mt-5 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-altr-text-2 transition hover:text-altr-lime"
-              >
+              <span className="mt-5 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-altr-text-2 transition group-hover:text-altr-lime">
                 Read more →
-              </Link>
-            </article>
+              </span>
+            </Link>
           ))}
         </div>
 
