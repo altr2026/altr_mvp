@@ -231,7 +231,7 @@ function ContractLayer() {
   )
   const homeCurr = homeCurrency(brand)
   const targetCurr = settlementCurrency
-  const fxRail = `${homeCurr} → USDC → ${settlementCurrency}`
+  const fxPrefix = `${homeCurr} → USDC →`
 
   const sponsorshipNet = dealValue * (1 - 0.004) // -0.4% altr transaction fee
   const brokerageAmount = dealValue * (brokeragePct / 100)
@@ -279,7 +279,7 @@ function ContractLayer() {
           setDurationDays={setDurationDays}
           frequency={frequency}
           setFrequency={setFrequency}
-          fxRail={fxRail}
+          fxPrefix={fxPrefix}
           settlementCurrency={settlementCurrency}
           setSettlementCurrency={setSettlementCurrency}
           brokeragePct={brokeragePct}
@@ -403,7 +403,7 @@ function DealConfigBar({
   setDurationDays,
   frequency,
   setFrequency,
-  fxRail,
+  fxPrefix,
   settlementCurrency,
   setSettlementCurrency,
   brokeragePct,
@@ -419,7 +419,7 @@ function DealConfigBar({
   setDurationDays: (n: number) => void
   frequency: string
   setFrequency: (s: string) => void
-  fxRail: string
+  fxPrefix: string
   settlementCurrency: string
   setSettlementCurrency: (s: string) => void
   brokeragePct: number
@@ -505,15 +505,13 @@ function DealConfigBar({
           </FieldGroup>
         )}
 
-        <FieldGroup
-          label="Settlement FX"
-          hint={fxRail}
-        >
+        <FieldGroup label="Settlement FX">
           <StyledSelect
             value={settlementCurrency}
             options={SETTLEMENT_CURRENCY_OPTIONS}
             onChange={setSettlementCurrency}
             triggerClassName={triggerClass}
+            prefix={fxPrefix}
           />
         </FieldGroup>
 

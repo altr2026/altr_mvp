@@ -8,6 +8,10 @@ type Props = {
   onChange: (v: string) => void
   placeholder?: string
   triggerClassName: string
+  // Optional read-only prefix rendered before the selected value in the
+  // trigger button — used to inline auto-derived context (e.g. an FX path
+  // prefix "KRW → USDC →" before the destination-currency choice).
+  prefix?: string
 }
 
 export function StyledSelect({
@@ -16,6 +20,7 @@ export function StyledSelect({
   onChange,
   placeholder = 'Select…',
   triggerClassName,
+  prefix,
 }: Props) {
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
@@ -103,8 +108,15 @@ export function StyledSelect({
         onKeyDown={handleKeyDown}
         className={`${triggerClassName} flex w-full items-center justify-between gap-3 text-left`}
       >
-        <span className={`truncate ${isPlaceholder ? 'text-white/40' : ''}`}>
-          {value || placeholder}
+        <span className="flex min-w-0 flex-1 items-center gap-2">
+          {prefix && (
+            <span className="font-mono text-[12px] whitespace-nowrap text-white/40">
+              {prefix}
+            </span>
+          )}
+          <span className={`truncate ${isPlaceholder ? 'text-white/40' : ''}`}>
+            {value || placeholder}
+          </span>
         </span>
         <svg
           width="12"
