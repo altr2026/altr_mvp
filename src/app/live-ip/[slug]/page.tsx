@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Footer } from '@/components/site/Footer'
+import { MakeOfferButton } from '@/components/live-ip/MakeOfferButton'
 import {
   getRightHolderBySlug,
   getRightHolders,
@@ -356,12 +357,7 @@ function SlotCard({ slot, slug }: { slot: AvailableSlot; slug: string }) {
         >
           Contact request
         </Link>
-        <Link
-          href={`/deal/preview/${slug}`}
-          className="inline-flex h-10 items-center justify-center rounded-lg border border-altr-mint-bright/30 bg-altr-mint/[0.08] px-3 text-[12.5px] font-semibold text-altr-mint-bright transition hover:border-altr-mint hover:bg-altr-mint/[0.18]"
-        >
-          Make an offer →
-        </Link>
+        <MakeOfferButton slug={slug} />
       </div>
     </article>
   )
