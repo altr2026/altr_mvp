@@ -28,7 +28,8 @@ export function GoldenMatch() {
 
   if (!match) return null
 
-  const meta = MATCH_META[match.id]
+  const meta = match.meta ?? MATCH_META[match.id]
+  if (!meta) return null
   const rsRate = match.roi_prediction.rs_rate
   const pillText = `${brand.brandName} × ${meta.shortName} · RS ${rsRate}% · ${brand.timeline} · USD→AED`
 

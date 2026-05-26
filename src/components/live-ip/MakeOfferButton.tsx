@@ -4,66 +4,86 @@ import { useRouter } from 'next/navigation'
 import { useDemoState } from '@/components/providers/DemoStateProvider'
 import { FALLBACK_MATCHES } from '@/lib/match-fallback'
 import {
-  DEFAULT_BRAND,
-  type BrandProfile,
+  type MatchMeta,
   type MatchResult,
 } from '@/lib/demo-state'
+import type { RightHolder } from '@/types'
 
-// Map LIVE IP slugs onto MATCH_META keys. Anything unmapped falls back
-// to the most-marquee match so the demo always has something to show.
-const SLUG_TO_MATCH_ID: Record<string, MatchResult['id']> = {
-  'frieze-abu-dhabi': 'frieze',
-  'frieze-abu-dhabi-inaugural': 'frieze',
-  'dubai-shopping-festival': 'dsf',
-  'dsf-2026': 'dsf',
-  'art-dubai': 'art-dubai',
-  'art-dubai-2026': 'art-dubai',
+const MONTH_LABEL = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+]
+
+function formatTiming(rh: RightHolder): string {
+  if (!rh.availableSlots.length) return 'Q4 2026'
+  const earliest = [...rh.availableSlots].sort((a, b) =>
+    a.startDate.localeCompare(b.startDate),
+  )[0]
+  const d = new Date(earliest.startDate)
+  const month = MONTH_LABEL[d.getMonth()]
+  return `${month} ${d.getFullYear()}`
 }
 
-function briefLooksUncustomized(brand: BrandProfile): boolean {
-  // If every key field still matches DEFAULT_BRAND, treat the brief as
-  // never having been touched. Send the user through /brief so the
-  // agent can catch up the missing details.
-  return (
-    brand.brandName === DEFAULT_BRAND.brandName &&
-    brand.vertical === DEFAULT_BRAND.vertical &&
-    brand.targetMarket === DEFAULT_BRAND.targetMarket &&
-    brand.budgetRange === DEFAULT_BRAND.budgetRange
-  )
+function formatReach(n: number): string {
+  if (n >= 1_000_000) {
+    const m = n / 1_000_000
+    return `${m >= 10 ? m.toFixed(0) : m.toFixed(1)}M`
+  }
+  if (n >= 1_000) return `${Math.round(n / 1_000)}K`
+  return String(n)
+}
+
+const CATEGORY_LABEL: Record<RightHolder['type'], string> = {
+  'live-event': 'Live Event',
+  'mall-activation': 'Mall Activation',
+  'hospitality-popup': 'Hospitality Pop-up',
+}
+
+function synthesizeMeta(rh: RightHolder): MatchMeta {
+  return {
+    id: rh.slug,
+    name: rh.name,
+    shortName: rh.name.split(' ').slice(0, 3).join(' '),
+    category: CATEGORY_LABEL[rh.type],
+    location: `${rh.city}, ${rh.country}`,
+    timing: formatTiming(rh),
+    image: rh.heroImage,
+    visitors: formatReach(rh.audienceSize),
+    audienceProfile: rh.audienceProfile,
+    pastDealsCount: 3,
+    pastDealAvgROI: '3.2× revenue / 4.1% CVR',
+  }
+}
+
+function synthesizeMatch(rh: RightHolder): MatchResult {
+  // Pull demo numbers from FALLBACK_MATCHES[0] so the GoldenMatch view
+  // has the same shape it always does, then attach a meta synthesized
+  // from the chosen RightHolder so the page renders the correct IP.
+  const template = FALLBACK_MATCHES[0]
+  return {
+    ...template,
+    id: rh.slug,
+    why_this_match: `${rh.name} offers a high-fit audience profile for cross-border brand activation. ${rh.audienceProfile}.`,
+    key_signals: rh.audienceHighlights?.slice(0, 4) ?? template.key_signals,
+    altr_edge: `ALTR clears the deal end-to-end — RS split, USDC rail, 3-second milestone settlement. No SWIFT delay between you and ${rh.name}.`,
+    meta: synthesizeMeta(rh),
+  }
 }
 
 type Props = {
-  slug: string
+  rightHolder: RightHolder
 }
 
-export function MakeOfferButton({ slug }: Props) {
+export function MakeOfferButton({ rightHolder }: Props) {
   const router = useRouter()
-  const { state, setMatches, selectMatch } = useDemoState()
+  const { setMatches, selectMatch } = useDemoState()
 
   const handleClick = () => {
-    const matchId = SLUG_TO_MATCH_ID[slug] ?? 'frieze'
-    setMatches(FALLBACK_MATCHES)
-    selectMatch(matchId)
-
-    if (briefLooksUncustomized(state.brand)) {
-      // Cue the FloatingChatWidget concierge to catch up the brief.
-      try {
-        window.dispatchEvent(
-          new CustomEvent('altr:askAgent', {
-            detail: {
-              intent: 'brief-catch-up',
-              message:
-                "Quick brief — I just need a few details about your brand before locking the Golden Match. Let's run through what I'm missing.",
-            },
-          }),
-        )
-      } catch {
-        /* SSR safety */
-      }
-      router.push('/brief')
-      return
-    }
-
+    const synthesized = synthesizeMatch(rightHolder)
+    // Inject the synthesized match into matches[] so selectMatch()
+    // (which finds by id within state.matches) can resolve it.
+    setMatches([synthesized])
+    selectMatch(synthesized.id)
     router.push('/confirm')
   }
 

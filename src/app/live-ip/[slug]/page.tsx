@@ -232,7 +232,7 @@ export default async function LiveIPDetailPage({
 
           <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {slotsSorted.map((slot) => (
-              <SlotCard key={slot.id} slot={slot} slug={rh.slug} />
+              <SlotCard key={slot.id} slot={slot} rh={rh} />
             ))}
           </div>
         </div>
@@ -295,7 +295,7 @@ function Badge({
   )
 }
 
-function SlotCard({ slot, slug }: { slot: AvailableSlot; slug: string }) {
+function SlotCard({ slot, rh }: { slot: AvailableSlot; rh: RightHolder }) {
   const dateRange = formatDateRange(slot.startDate, slot.endDate)
   const formatLabel = FORMAT_LABEL[slot.format]
   return (
@@ -357,7 +357,7 @@ function SlotCard({ slot, slug }: { slot: AvailableSlot; slug: string }) {
         >
           Contact request
         </Link>
-        <MakeOfferButton slug={slug} />
+        <MakeOfferButton rightHolder={rh} />
       </div>
     </article>
   )

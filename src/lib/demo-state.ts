@@ -30,7 +30,7 @@ export type MatchScoreBreakdown = {
 }
 
 export type MatchResult = {
-  id: 'frieze' | 'dsf' | 'art-dubai'
+  id: string
   match_score: number
   score_breakdown: MatchScoreBreakdown
   why_this_match: string
@@ -38,6 +38,9 @@ export type MatchResult = {
   roi_prediction: MatchROI
   risk_flags?: string[]
   altr_edge: string
+  // Optional inline meta — set when the match was synthesized at runtime
+  // (e.g., user picked a LIVE IP outside the prebuilt MATCH_META roster).
+  meta?: MatchMeta
 }
 
 export type MatchResponse = {
@@ -46,7 +49,7 @@ export type MatchResponse = {
 }
 
 export type MatchMeta = {
-  id: MatchResult['id']
+  id: string
   name: string
   shortName: string
   category: string
@@ -59,7 +62,7 @@ export type MatchMeta = {
   pastDealAvgROI: string
 }
 
-export const MATCH_META: Record<MatchResult['id'], MatchMeta> = {
+export const MATCH_META: Record<string, MatchMeta> = {
   frieze: {
     id: 'frieze',
     name: 'Frieze Abu Dhabi (Inaugural)',
