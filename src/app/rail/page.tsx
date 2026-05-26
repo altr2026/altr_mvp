@@ -72,8 +72,8 @@ function fmtCount(n: number): string {
   return Math.round(n).toLocaleString('en-US')
 }
 
-// Format a local currency amount with its USD equivalent in parens.
-// USDC is 1:1 with USD so no parens needed.
+// USD-primary format. Non-USD currencies show local equivalent in parens.
+// USDC is 1:1 with USD so it just shows as USDC count.
 function fmtLocal(amountInUsd: number, currency: string): string {
   if (currency === 'USDC') {
     return `${fmtCount(amountInUsd)} USDC`
@@ -81,8 +81,8 @@ function fmtLocal(amountInUsd: number, currency: string): string {
   if (currency === 'USD') {
     return fmtUSD(amountInUsd)
   }
-  const local = amountInUsd * rateUSD(currency)
-  return `${fmtCount(local)} ${currency} · ≈${fmtUSD(amountInUsd)}`
+  const local = fmtCount(amountInUsd * rateUSD(currency))
+  return `${fmtUSD(amountInUsd)} (= ${local} ${currency})`
 }
 
 function fmtDate(d: Date): string {

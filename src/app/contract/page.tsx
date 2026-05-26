@@ -106,6 +106,37 @@ function fmtUSD(n: number): string {
   })
 }
 
+function fmtCount(n: number): string {
+  return Math.round(n).toLocaleString('en-US')
+}
+
+function rateUSD(currency: string): number {
+  // demo FX rates — units of {currency} per 1 USD
+  switch (currency) {
+    case 'KRW': return 1330
+    case 'JPY': return 155
+    case 'CNY': return 7.2
+    case 'TWD': return 32
+    case 'HKD': return 7.8
+    case 'SGD': return 1.34
+    case 'AED': return 3.67
+    case 'SAR': return 3.75
+    case 'EUR': return 0.92
+    case 'USD':
+    case 'USDC':
+    default: return 1
+  }
+}
+
+// USD-primary format. Non-USD currencies show local equivalent in parens.
+// USDC is 1:1 with USD so it just shows as USDC count.
+function fmtMoney(usdAmount: number, currency: string): string {
+  if (currency === 'USDC') return `${fmtCount(usdAmount)} USDC`
+  if (currency === 'USD') return fmtUSD(usdAmount)
+  const local = fmtCount(usdAmount * rateUSD(currency))
+  return `${fmtUSD(usdAmount)} (= ${local} ${currency})`
+}
+
 function shortBrand(brand: BrandProfile): string {
   return (brand.brandName || 'Brand').split(' ')[0]
 }
@@ -560,7 +591,7 @@ function ThreeActorFlow({
             <ArrowSegment
               direction="right"
               color="teal"
-              amount={`${fmtUSD(dealValue)} ${homeCurr}`}
+              amount={fmtMoney(dealValue, homeCurr)}
               sub="sponsorship in"
             />
           }
@@ -568,7 +599,7 @@ function ThreeActorFlow({
             <ArrowSegment
               direction="right"
               color="teal"
-              amount={`${fmtUSD(sponsorshipNet)} ${targetCurr}`}
+              amount={fmtMoney(sponsorshipNet, targetCurr)}
               sub="net to LIVE IP · −0.4% tx"
             />
           }
@@ -581,7 +612,7 @@ function ThreeActorFlow({
               <ArrowSegment
                 direction="left"
                 color="amber"
-                amount={`${brokeragePct}% · ${fmtUSD(brokerageAmount)}`}
+                amount={`${brokeragePct}% · ${fmtMoney(brokerageAmount, targetCurr)}`}
                 sub="brokerage · one-time · you pay ALTR"
               />
             }
@@ -606,7 +637,7 @@ function ThreeActorFlow({
                 <ArrowSegment
                   direction="left"
                   color="mint"
-                  amount={`${rsRatio}% RS · ~${fmtUSD(rsPerPeriod)}`}
+                  amount={`${rsRatio}% RS · ~${fmtMoney(rsPerPeriod, homeCurr)}`}
                   sub={`${frequency.toLowerCase()} via auto-split`}
                 />
               }
