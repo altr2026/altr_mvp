@@ -165,7 +165,7 @@ const BLOCKS: BlockDef[] = [
 ]
 
 const DURATION_OPTIONS = ['1 month', '3 months', '6 months', '12 months']
-const FREQUENCY_OPTIONS = ['Weekly', 'Bi-weekly', 'Monthly', 'Quarterly']
+const FREQUENCY_OPTIONS = ['Daily', 'Weekly', 'Monthly', 'Quarterly']
 
 const triggerClass =
   'rounded-lg border border-white/[0.08] bg-black/40 px-3 py-2.5 text-[13px] text-white focus:border-[#5DCAA5]/60 focus:outline-none'
