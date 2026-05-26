@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { Fragment } from 'react'
 import {
   BORDER_COLOR,
   DEMO_STEPS,
@@ -79,61 +80,61 @@ function DotTrail({
   onJump?: (n: number) => void
 }) {
   return (
-    <div className="-mx-1 flex items-start overflow-x-auto px-1">
-      <div className="flex items-start">
-        {DEMO_STEPS.map((s, idx) => {
-          const isCompleted = s.number < currentStep
-          const isCurrent = s.number === currentStep
-          const isClickable = Boolean(onJump) && s.number <= currentStep
-          const layerColor = LAYER_COLOR[s.layer]
-          const lineColor =
-            idx > 0 && (DEMO_STEPS[idx - 1].number < currentStep || isCurrent)
-              ? SUCCESS_COLOR
-              : BORDER_COLOR
+    <div className="flex w-full items-start">
+      {DEMO_STEPS.map((s, idx) => {
+        const isCompleted = s.number < currentStep
+        const isCurrent = s.number === currentStep
+        const isClickable = Boolean(onJump) && s.number <= currentStep
+        const layerColor = LAYER_COLOR[s.layer]
+        const lineColor =
+          idx > 0 && (DEMO_STEPS[idx - 1].number < currentStep || isCurrent)
+            ? SUCCESS_COLOR
+            : BORDER_COLOR
 
-          const dotBlock = (
-            <span className="flex flex-col items-center gap-1.5">
-              <Dot
-                isCompleted={isCompleted}
-                isCurrent={isCurrent}
-                layerColor={layerColor}
-              />
-              <span
-                className="font-mono text-[9.5px] tracking-[0.15em] uppercase"
-                style={{
-                  color: isCurrent
-                    ? layerColor
-                    : isCompleted
-                      ? SUCCESS_COLOR
-                      : '#5E5E68',
-                }}
-              >
-                {s.number.toString().padStart(2, '0')}
-              </span>
-              <span
-                className="font-mono text-[9.5px] font-medium tracking-[0.14em] uppercase"
-                style={{
-                  color: isCurrent
-                    ? layerColor
-                    : isCompleted
-                      ? '#9F9FA9'
-                      : '#5E5E68',
-                }}
-              >
-                {s.shortLabel}
-              </span>
+        const dotBlock = (
+          <span className="flex flex-col items-center gap-1.5">
+            <Dot
+              isCompleted={isCompleted}
+              isCurrent={isCurrent}
+              layerColor={layerColor}
+            />
+            <span
+              className="font-mono text-[9.5px] tracking-[0.15em] uppercase"
+              style={{
+                color: isCurrent
+                  ? layerColor
+                  : isCompleted
+                    ? SUCCESS_COLOR
+                    : '#5E5E68',
+              }}
+            >
+              {s.number.toString().padStart(2, '0')}
             </span>
-          )
+            <span
+              className="hidden font-mono text-[9.5px] font-medium tracking-[0.14em] uppercase sm:inline"
+              style={{
+                color: isCurrent
+                  ? layerColor
+                  : isCompleted
+                    ? '#9F9FA9'
+                    : '#5E5E68',
+              }}
+            >
+              {s.shortLabel}
+            </span>
+          </span>
+        )
 
-          return (
-            <div key={s.number} className="flex items-start">
-              {idx > 0 && (
-                <span
-                  aria-hidden
-                  className="mx-0 mt-[10px] block h-px w-8 flex-shrink-0 md:w-14 lg:w-16"
-                  style={{ background: lineColor }}
-                />
-              )}
+        return (
+          <Fragment key={s.number}>
+            {idx > 0 && (
+              <span
+                aria-hidden
+                className="mt-[10px] block h-px flex-1 min-w-[8px]"
+                style={{ background: lineColor }}
+              />
+            )}
+            <div className="flex-shrink-0">
               {isClickable && onJump ? (
                 <button
                   type="button"
@@ -159,9 +160,9 @@ function DotTrail({
                 </span>
               )}
             </div>
-          )
-        })}
-      </div>
+          </Fragment>
+        )
+      })}
     </div>
   )
 }
