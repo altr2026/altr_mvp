@@ -13,7 +13,7 @@ import {
 } from '@/lib/demo-state'
 import type { WaitlistRole } from '@/types'
 
-type DealType = 'fixed' | 'milestone' | 'rs'
+type DealType = 'fixed' | 'hybrid' | 'rs'
 type BlockColor = 'teal' | 'lightgreen' | 'amber'
 type Milestone = { id: 'M1' | 'M2' | 'M3'; label: string; date: Date }
 
@@ -73,14 +73,10 @@ function quarterStart(timing: string): Date {
   return new Date()
 }
 
-function addMonths(d: Date, n: number): Date {
+function addDays(d: Date, n: number): Date {
   const nd = new Date(d)
-  nd.setMonth(nd.getMonth() + n)
+  nd.setDate(nd.getDate() + n)
   return nd
-}
-
-function endOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0)
 }
 
 function fmtDate(d: Date): string {
@@ -155,18 +151,28 @@ type BlockDef = {
 }
 
 const BLOCKS: BlockDef[] = [
-  { key: 'fiat-in', icon: '→', name: 'FIAT IN', color: 'teal', activeFor: ['fixed', 'milestone', 'rs'] },
-  { key: 'usdc', icon: '⬡', name: '→ USDC', color: 'teal', activeFor: ['fixed', 'milestone', 'rs'] },
-  { key: 'escrow', icon: '🔒', name: 'ESCROW', color: 'teal', activeFor: ['fixed', 'milestone', 'rs'] },
-  { key: 'trigger', icon: '⚡', name: 'TRIGGER', color: 'lightgreen', activeFor: ['milestone', 'rs'] },
+  { key: 'fiat-in', icon: '→', name: 'FIAT IN', color: 'teal', activeFor: ['fixed', 'hybrid', 'rs'] },
+  { key: 'usdc', icon: '⬡', name: '→ USDC', color: 'teal', activeFor: ['fixed', 'hybrid', 'rs'] },
+  { key: 'escrow', icon: '🔒', name: 'ESCROW', color: 'teal', activeFor: ['fixed', 'hybrid', 'rs'] },
+  { key: 'trigger', icon: '⚡', name: 'TRIGGER', color: 'lightgreen', activeFor: ['hybrid', 'rs'] },
   { key: 'pos', icon: '📊', name: 'POS API', color: 'lightgreen', activeFor: ['rs'] },
   { key: 'split', icon: '÷', name: 'AUTO-SPLIT', color: 'lightgreen', activeFor: ['rs'] },
-  { key: 'fx', icon: '↔', name: 'FX', color: 'amber', activeFor: ['fixed', 'milestone', 'rs'] },
-  { key: 'poe', icon: '⛓', name: 'POE', color: 'teal', activeFor: ['fixed', 'milestone', 'rs'] },
+  { key: 'fx', icon: '↔', name: 'FX', color: 'amber', activeFor: ['fixed', 'hybrid', 'rs'] },
+  { key: 'poe', icon: '⛓', name: 'POE', color: 'teal', activeFor: ['fixed', 'hybrid', 'rs'] },
 ]
 
-const DURATION_OPTIONS = ['1 month', '3 months', '6 months', '12 months']
 const FREQUENCY_OPTIONS = ['Daily', 'Weekly', 'Bi-weekly', 'Monthly', 'Quarterly']
+const SETTLEMENT_CURRENCY_OPTIONS = [
+  'USD',
+  'USDC',
+  'KRW',
+  'AED',
+  'JPY',
+  'SGD',
+  'EUR',
+  'GBP',
+  'SAR',
+]
 
 const triggerClass =
   'rounded-lg border border-white/[0.08] bg-black/40 px-3 py-2.5 text-[13px] text-white focus:border-[#5DCAA5]/60 focus:outline-none'
@@ -189,9 +195,12 @@ function ContractLayer() {
 
   const [dealType, setDealType] = useState<DealType>('rs')
   const [rsRatio, setRsRatio] = useState(15)
-  const [durationLabel, setDurationLabel] = useState('3 months')
+  const [durationDays, setDurationDays] = useState(30)
   const [frequency, setFrequency] = useState('Monthly')
   const [brokeragePct, setBrokeragePct] = useState(12)
+  const [settlementCurrency, setSettlementCurrency] = useState(() =>
+    targetCurrency(state.brand),
+  )
   const [generating, setGenerating] = useState(false)
   const [role, setRole] = useState<WaitlistRole>('brand')
 
@@ -216,14 +225,13 @@ function ContractLayer() {
     }
   }
 
-  const duration = parseInt(durationLabel, 10) || 3
   const dealValue = useMemo(
     () => parseMaxBudget(brand.budgetRange),
     [brand.budgetRange],
   )
   const homeCurr = homeCurrency(brand)
-  const targetCurr = targetCurrency(brand)
-  const fxRail = `${homeCurr} → USDC → ${targetCurr}`
+  const targetCurr = settlementCurrency
+  const fxRail = `${homeCurr} → USDC → ${settlementCurrency}`
 
   const sponsorshipNet = dealValue * (1 - 0.004) // -0.4% altr transaction fee
   const brokerageAmount = dealValue * (brokeragePct / 100)
@@ -233,16 +241,18 @@ function ContractLayer() {
 
   const milestones: Milestone[] = useMemo(() => {
     const start = quarterStart(matchMeta.timing)
+    const safeDays = Math.max(1, durationDays)
+    const mid = Math.max(1, Math.floor(safeDays / 2))
     return [
       { id: 'M1', label: 'Booth setup complete', date: start },
-      { id: 'M2', label: 'Month 1 POS verified', date: addMonths(start, 1) },
+      { id: 'M2', label: 'Mid-event POS check', date: addDays(start, mid) },
       {
         id: 'M3',
         label: 'Campaign end + final POS',
-        date: endOfMonth(addMonths(start, Math.max(0, duration - 1))),
+        date: addDays(start, safeDays),
       },
     ]
-  }, [matchMeta.timing, duration])
+  }, [matchMeta.timing, durationDays])
 
   const handleLock = () => {
     if (generating) return
@@ -265,11 +275,13 @@ function ContractLayer() {
           setDealType={setDealType}
           rsRatio={rsRatio}
           setRsRatio={setRsRatio}
-          durationLabel={durationLabel}
-          setDurationLabel={setDurationLabel}
+          durationDays={durationDays}
+          setDurationDays={setDurationDays}
           frequency={frequency}
           setFrequency={setFrequency}
           fxRail={fxRail}
+          settlementCurrency={settlementCurrency}
+          setSettlementCurrency={setSettlementCurrency}
           brokeragePct={brokeragePct}
           setBrokeragePct={setBrokeragePct}
           milestones={milestones}
@@ -387,11 +399,13 @@ function DealConfigBar({
   setDealType,
   rsRatio,
   setRsRatio,
-  durationLabel,
-  setDurationLabel,
+  durationDays,
+  setDurationDays,
   frequency,
   setFrequency,
   fxRail,
+  settlementCurrency,
+  setSettlementCurrency,
   brokeragePct,
   setBrokeragePct,
   milestones,
@@ -401,18 +415,20 @@ function DealConfigBar({
   setDealType: (d: DealType) => void
   rsRatio: number
   setRsRatio: (n: number) => void
-  durationLabel: string
-  setDurationLabel: (s: string) => void
+  durationDays: number
+  setDurationDays: (n: number) => void
   frequency: string
   setFrequency: (s: string) => void
   fxRail: string
+  settlementCurrency: string
+  setSettlementCurrency: (s: string) => void
   brokeragePct: number
   setBrokeragePct: (n: number) => void
   milestones: Milestone[]
   role: WaitlistRole
 }) {
   const isRS = dealType === 'rs'
-  const showMilestones = dealType === 'milestone' || isRS
+  const showMilestones = dealType === 'hybrid' || isRS
   const showBrokerage = role === 'live-ip'
 
   return (
@@ -425,7 +441,7 @@ function DealConfigBar({
           {(
             [
               { key: 'fixed', label: 'Fixed Fee' },
-              { key: 'milestone', label: 'Milestone' },
+              { key: 'hybrid', label: 'Hybrid' },
               { key: 'rs', label: 'Revenue Share' },
             ] as { key: DealType; label: string }[]
           ).map((t) => (
@@ -458,13 +474,24 @@ function DealConfigBar({
           />
         )}
 
-        <FieldGroup label="Duration">
-          <StyledSelect
-            value={durationLabel}
-            options={DURATION_OPTIONS}
-            onChange={setDurationLabel}
-            triggerClassName={triggerClass}
-          />
+        <FieldGroup label="Duration (days)">
+          <div className="flex items-center gap-2 rounded-lg border border-white/[0.08] bg-black/40 px-3 py-2.5">
+            <input
+              type="number"
+              min={1}
+              max={365}
+              value={durationDays}
+              onChange={(e) =>
+                setDurationDays(
+                  Math.max(1, Math.min(365, Number(e.target.value) || 1)),
+                )
+              }
+              className="w-full bg-transparent text-[13px] text-white focus:outline-none"
+            />
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.15em] text-white/45">
+              days
+            </span>
+          </div>
         </FieldGroup>
 
         {isRS && (
@@ -478,10 +505,16 @@ function DealConfigBar({
           </FieldGroup>
         )}
 
-        <FieldGroup label="Settlement FX" hint="Auto from markets">
-          <div className="rounded-lg border border-white/[0.06] bg-black/40 px-3 py-2.5 font-mono text-[13px] text-white/70">
-            {fxRail}
-          </div>
+        <FieldGroup
+          label="Settlement FX"
+          hint={fxRail}
+        >
+          <StyledSelect
+            value={settlementCurrency}
+            options={SETTLEMENT_CURRENCY_OPTIONS}
+            onChange={setSettlementCurrency}
+            triggerClassName={triggerClass}
+          />
         </FieldGroup>
 
         {showBrokerage && (
@@ -561,8 +594,8 @@ function ThreeActorFlow({
         <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
           {dealType === 'fixed'
             ? 'Fixed fee deal'
-            : dealType === 'milestone'
-              ? 'Milestone deal'
+            : dealType === 'hybrid'
+              ? 'Hybrid deal · fee + RS bonus'
               : 'Revenue Share deal · circular'}
         </span>
       </div>
