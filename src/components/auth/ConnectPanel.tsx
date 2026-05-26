@@ -70,6 +70,11 @@ export function ConnectPanel() {
         | AuthSigninResponse
         | AuthSignupResponse
       if (data.ok) {
+        try {
+          window.localStorage.setItem('altr_demo_role', role)
+        } catch {
+          /* quota / private mode — ignore */
+        }
         setStatus('success')
         setMessage(data.message)
         if (targetMode === 'login') {

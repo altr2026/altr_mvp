@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { StepShell } from '@/components/demo/StepShell'
 import { useDemoState } from '@/components/providers/DemoStateProvider'
@@ -10,6 +10,9 @@ import {
   type BrandProfile,
   type MatchMeta,
 } from '@/lib/demo-state'
+import type { WaitlistRole } from '@/types'
+
+const ROLE_STORAGE_KEY = 'altr_demo_role'
 
 type DealType = 'fixed' | 'milestone' | 'rs'
 type BlockColor = 'teal' | 'lightgreen' | 'amber'
@@ -253,6 +256,28 @@ function ContractLayer() {
   const [durationLabel, setDurationLabel] = useState('3 months')
   const [frequency, setFrequency] = useState('Monthly')
   const [generating, setGenerating] = useState(false)
+  const [role, setRole] = useState<WaitlistRole>('brand')
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const stored = window.localStorage.getItem(ROLE_STORAGE_KEY)
+      if (stored === 'brand' || stored === 'live-ip') setRole(stored)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  const updateRole = (next: WaitlistRole) => {
+    setRole(next)
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(ROLE_STORAGE_KEY, next)
+      }
+    } catch {
+      /* ignore */
+    }
+  }
 
   const duration = parseInt(durationLabel, 10) || 3
   const dealValue = useMemo(() => parseMaxBudget(brand.budgetRange), [brand.budgetRange])
@@ -292,14 +317,45 @@ function ContractLayer() {
   return (
     <div className="px-6 pb-24 pt-6 md:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="flex flex-col gap-2">
-          <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#5DCAA5]">
-            CONTRACT LAYER
-          </span>
-          <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-white md:text-[26px]">
-            Configure deal — {brand.brandName || 'Brand'} ×{' '}
-            {matchMeta.shortName}
-          </h1>
+        <header className="flex flex-wrap items-start justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#5DCAA5]">
+              CONTRACT LAYER
+            </span>
+            <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-white md:text-[26px]">
+              Configure deal — {brand.brandName || 'Brand'} ×{' '}
+              {matchMeta.shortName}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/40">
+              View as
+            </span>
+            <div className="grid grid-cols-2 gap-0 overflow-hidden rounded-lg border border-white/[0.08]">
+              <button
+                type="button"
+                onClick={() => updateRole('brand')}
+                className={`px-3 py-1.5 text-[11px] font-medium transition ${
+                  role === 'brand'
+                    ? 'bg-[#5DCAA5]/[0.16] text-[#5DCAA5]'
+                    : 'text-white/60 hover:text-white/85'
+                }`}
+              >
+                Brand
+              </button>
+              <button
+                type="button"
+                onClick={() => updateRole('live-ip')}
+                className={`px-3 py-1.5 text-[11px] font-medium transition ${
+                  role === 'live-ip'
+                    ? 'bg-[#5DCAA5]/[0.16] text-[#5DCAA5]'
+                    : 'text-white/60 hover:text-white/85'
+                }`}
+              >
+                LIVE IP
+              </button>
+            </div>
+          </div>
         </header>
 
         <div className="mt-8 grid gap-6 lg:grid-cols-[2fr_3fr] lg:gap-10">
@@ -316,7 +372,7 @@ function ContractLayer() {
             milestones={milestones}
           />
 
-          <SettlementRail ctx={blockCtx} dealValue={dealValue} />
+          <SettlementRail ctx={blockCtx} dealValue={dealValue} role={role} />
         </div>
 
         <div className="mt-10 flex flex-col items-end gap-3">
@@ -458,9 +514,11 @@ function DealParameters({
 function SettlementRail({
   ctx,
   dealValue,
+  role,
 }: {
   ctx: BlockCtx
   dealValue: number
+  role: WaitlistRole
 }) {
   const { dealType } = ctx
   const activeCount = BLOCKS.filter((b) => b.activeFor.includes(dealType)).length
@@ -488,7 +546,7 @@ function SettlementRail({
         </p>
       )}
 
-      {dealType === 'rs' && <FeeBreakdown dealValue={dealValue} />}
+      {dealType === 'rs' && <FeeBreakdown dealValue={dealValue} role={role} />}
     </div>
   )
 }
@@ -567,32 +625,75 @@ function MoatBox({ activeCount }: { activeCount: number }) {
   )
 }
 
-function FeeBreakdown({ dealValue }: { dealValue: number }) {
+function FeeBreakdown({
+  dealValue,
+  role,
+}: {
+  dealValue: number
+  role: WaitlistRole
+}) {
   const wise = dealValue * 0.008
   const ripple = dealValue * 0.003
   const infra = wise + ripple
-  const altrFee = dealValue * 0.005
-  const total = infra + altrFee
+  const altrTxFee = dealValue * 0.004
+  const total = infra + altrTxFee
   const swiftLow = dealValue * 0.03
   const swiftHigh = dealValue * 0.05
   const savingsLow = swiftLow - total
   const savingsHigh = swiftHigh - total
 
+  const brokerageLow = dealValue * 0.1
+  const brokerageHigh = dealValue * 0.15
+
+  const isLiveIP = role === 'live-ip'
+  const totalLabel = isLiveIP ? 'Transaction fee' : 'You pay'
+
   return (
     <div className="mt-3 rounded-lg border border-white/[0.06] bg-black/30 p-4">
       <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/60">
-        COST BREAKDOWN · {fmtUSD(dealValue)} deal
+        Cost breakdown · {fmtUSD(dealValue)} deal · viewing as{' '}
+        <span className="text-[#5DCAA5]">
+          {isLiveIP ? 'LIVE IP' : 'Brand'}
+        </span>
       </p>
-      <div className="mt-3 flex flex-col gap-1.5 font-mono text-[12px]">
+
+      {isLiveIP && (
+        <>
+          <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.22em] text-[#EF9F27]">
+            1 · ALTR brokerage commission · one-time
+          </p>
+          <p className="mt-1 text-[11.5px] leading-[1.5] text-white/55">
+            What you pay ALTR for bringing the sponsor. Case-by-case based on
+            tier &amp; relationship.
+          </p>
+          <div className="mt-2 flex flex-col gap-1.5 font-mono text-[12px]">
+            <Row
+              left="Brokerage rate"
+              mid="10–15%"
+              right={`${fmtUSD(brokerageLow)}–${fmtUSD(brokerageHigh)}`}
+              bold
+            />
+          </div>
+          <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.22em] text-[#5DCAA5]">
+            2 · Transaction fee · per money movement
+          </p>
+          <p className="mt-1 text-[11.5px] leading-[1.5] text-white/55">
+            Charged each time funds move through the rail. Brand and LIVE IP
+            both pay on their own movements.
+          </p>
+        </>
+      )}
+
+      <div className={`${isLiveIP ? 'mt-2' : 'mt-3'} flex flex-col gap-1.5 font-mono text-[12px]`}>
         <Row left="Wise (fiat in + out)" mid="0.4% + 0.4%" right={fmtUSD(wise)} />
         <Row left="Circle USDC" mid="free" right="$0" />
         <Row left="XRPL escrow/settle" mid="$0.0000152" right="~$0" />
         <Row left="Ripple ODL (FX)" mid="0.3%" right={fmtUSD(ripple)} />
         <hr className="my-1 border-white/[0.06]" />
         <Row left="Infrastructure cost" mid="~1.1%" right={fmtUSD(infra)} />
-        <Row left="altr fee" mid="+0.5%" right={fmtUSD(altrFee)} />
+        <Row left="ALTR transaction fee" mid="+0.4%" right={fmtUSD(altrTxFee)} />
         <hr className="my-1 border-white/[0.06]" />
-        <Row left="Total to brand" mid="~1.5%" right={fmtUSD(total)} bold />
+        <Row left={totalLabel} mid="~1.5%" right={fmtUSD(total)} bold />
         <div className="mt-2 flex flex-col gap-1">
           <Row
             left="vs SWIFT traditional:"
@@ -601,7 +702,7 @@ function FeeBreakdown({ dealValue }: { dealValue: number }) {
             dim
           />
           <Row
-            left="Savings:"
+            left="Savings per movement:"
             mid=""
             right={`${fmtUSD(savingsLow)}–${fmtUSD(savingsHigh)}`}
             highlight
