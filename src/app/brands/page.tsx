@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { RoleHydrator } from '@/components/demo/RoleHydrator'
 import { BrandCapabilities } from '@/components/landing/BrandCapabilities'
 import { ComparisonTable } from '@/components/landing/ComparisonTable'
 import { EarlyAccessForm } from '@/components/landing/EarlyAccessForm'
@@ -18,6 +19,7 @@ export default async function BrandsPage() {
 
   return (
     <>
+      <RoleHydrator role="brand" />
       <section className="px-6 pt-16 pb-14 md:px-8 md:pt-24 md:pb-20">
         <div className="mx-auto max-w-6xl">
           <div className="min-h-[210px] md:min-h-[220px] lg:min-h-[200px]">

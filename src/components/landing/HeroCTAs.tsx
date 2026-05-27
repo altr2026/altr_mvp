@@ -2,11 +2,25 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ConnectPanel } from '@/components/auth/ConnectPanel'
 import { Modal } from '@/components/ui/Modal'
+import type { WaitlistRole } from '@/types'
+
+const ROLE_STORAGE_KEY = 'altr_demo_role'
 
 export function HeroCTAs() {
+  const router = useRouter()
   const [signInOpen, setSignInOpen] = useState(false)
+
+  const enterDemoAs = (role: WaitlistRole, route: string) => {
+    try {
+      window.localStorage.setItem(ROLE_STORAGE_KEY, role)
+    } catch {
+      /* quota / private mode — ignore */
+    }
+    router.push(route)
+  }
 
   return (
     <>
@@ -27,18 +41,20 @@ export function HeroCTAs() {
       </div>
 
       <div className="mt-3 flex flex-col items-start gap-1.5">
-        <Link
-          href="/brands"
+        <button
+          type="button"
+          onClick={() => enterDemoAs('brand', '/brands')}
           className="font-mono text-[10px] uppercase tracking-[0.2em] text-altr-text-2 transition hover:text-altr-lime"
         >
           Browse Demo as a brand →
-        </Link>
-        <Link
-          href="/live-ip"
+        </button>
+        <button
+          type="button"
+          onClick={() => enterDemoAs('live-ip', '/live-ip')}
           className="font-mono text-[10px] uppercase tracking-[0.2em] text-altr-text-2 transition hover:text-altr-lime"
         >
           Browse Demo as a rightholder →
-        </Link>
+        </button>
       </div>
 
       <Modal open={signInOpen} onClose={() => setSignInOpen(false)}>

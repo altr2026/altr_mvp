@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { RoleHydrator } from '@/components/demo/RoleHydrator'
 import { ComparisonTable } from '@/components/landing/ComparisonTable'
 import { EarlyAccessForm } from '@/components/landing/EarlyAccessForm'
 import { LiveIPCarousel } from '@/components/landing/LiveIPCarousel'
@@ -18,6 +19,7 @@ export default async function LiveIPPage() {
 
   return (
     <>
+      <RoleHydrator role="live-ip" />
       <section className="px-6 pt-16 pb-14 md:px-8 md:pt-24 md:pb-20">
         <div className="mx-auto max-w-6xl">
           <div className="min-h-[210px] md:min-h-[220px] lg:min-h-[200px]">
