@@ -151,7 +151,7 @@ function LiveLayer() {
   )
   const homeCurr = homeCurrency(brand)
   const targetCurr = targetCurrency(brand)
-  const rsRatio = 15
+  const rsRatio = 70
 
   // Demo: assume day 30 of 90 — early-mid activation
   const dayN = 30
@@ -284,8 +284,8 @@ function Header({
       </h1>
       <p className="text-[13px] leading-[1.55] text-white/55 md:text-[14px]">
         Activation window open. POS feed streaming in real time. Each sale
-        auto-splits on-chain — 15% routes back to Brand as RS, 85% retained
-        by LIVE IP.
+        auto-splits on-chain — 70% routes back to Brand as RS, 30% retained
+        by LIVE IP (Venue).
       </p>
     </header>
   )
