@@ -26,12 +26,20 @@ export function HeroCTAs() {
         </Link>
       </div>
 
-      <Link
-        href="/brands"
-        className="mt-3 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-altr-text-2 transition hover:text-altr-lime"
-      >
-        Browse Demo as a brand →
-      </Link>
+      <div className="mt-3 flex flex-col items-start gap-1.5">
+        <Link
+          href="/brands"
+          className="font-mono text-[10px] uppercase tracking-[0.2em] text-altr-text-2 transition hover:text-altr-lime"
+        >
+          Browse Demo as a brand →
+        </Link>
+        <Link
+          href="/live-ip"
+          className="font-mono text-[10px] uppercase tracking-[0.2em] text-altr-text-2 transition hover:text-altr-lime"
+        >
+          Browse Demo as a rightholder →
+        </Link>
+      </div>
 
       <Modal open={signInOpen} onClose={() => setSignInOpen(false)}>
         <ConnectPanel />
