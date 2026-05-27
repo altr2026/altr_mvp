@@ -79,6 +79,14 @@ export function MakeOfferButton({ rightHolder }: Props) {
   const { setMatches, selectMatch } = useDemoState()
 
   const handleClick = () => {
+    // Making an offer is a Brand-only action — pin the role so downstream
+    // pages (/confirm, /contract) gate UI to the Brand side even if a
+    // stale 'live-ip' value was left in localStorage from a prior session.
+    try {
+      window.localStorage.setItem('altr_demo_role', 'brand')
+    } catch {
+      /* ignore */
+    }
     const synthesized = synthesizeMatch(rightHolder)
     // Inject the synthesized match into matches[] so selectMatch()
     // (which finds by id within state.matches) can resolve it.

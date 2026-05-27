@@ -77,6 +77,13 @@ export function MatchPage() {
   }, [phase, matches.length])
 
   const handleSelect = (m: MatchResult) => {
+    // Picking a match is a Brand action — pin role so /confirm gates
+    // the role-ack panel to the Brand side.
+    try {
+      window.localStorage.setItem('altr_demo_role', 'brand')
+    } catch {
+      /* ignore */
+    }
     selectMatch(m.id)
     router.push('/confirm')
   }
