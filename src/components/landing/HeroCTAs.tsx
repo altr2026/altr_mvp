@@ -27,10 +27,10 @@ export function HeroCTAs() {
       </div>
 
       <Link
-        href="#live-ip"
+        href="/brands"
         className="mt-3 inline-block font-mono text-[10px] uppercase tracking-[0.2em] text-altr-text-2 transition hover:text-altr-lime"
       >
-        Browse Demo →
+        Browse Demo as a brand →
       </Link>
 
       <Modal open={signInOpen} onClose={() => setSignInOpen(false)}>
