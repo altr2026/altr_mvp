@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDemoState } from '@/components/providers/DemoStateProvider'
 import { MATCH_META, type BrandProfile } from '@/lib/demo-state'
+import type { WaitlistRole } from '@/types'
+
+const ROLE_STORAGE_KEY = 'altr_demo_role'
 
 type Auto = 'auto' | 'input' | 'manual'
 
@@ -273,17 +276,35 @@ export function ConfirmStage() {
     selectedMatch: match,
     hydrated,
   } = useDemoState()
-  const [rhConfirmed, setRhConfirmed] = useState(false)
-  const [brandConfirmed, setBrandConfirmed] = useState(false)
-  const [advancing, setAdvancing] = useState(false)
+  const [role, setRole] = useState<WaitlistRole | null>(null)
+  const [rhAck, setRhAck] = useState(false)
+  const [brandAck, setBrandAck] = useState(false)
 
+  // Pull the role the user picked at sign-in (Brand vs LIVE IP).
   useEffect(() => {
-    if (rhConfirmed && brandConfirmed && !advancing) {
-      setAdvancing(true)
-      const t = window.setTimeout(() => router.push('/contract'), 1400)
+    try {
+      const stored = window.localStorage.getItem(
+        ROLE_STORAGE_KEY,
+      ) as WaitlistRole | null
+      if (stored === 'brand' || stored === 'live-ip') setRole(stored)
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  // Once the user acknowledges their own side, simulate the counterparty
+  // acknowledging shortly after. Keeps the demo moving without needing
+  // two browsers/sessions.
+  useEffect(() => {
+    if (role === 'live-ip' && rhAck && !brandAck) {
+      const t = window.setTimeout(() => setBrandAck(true), 900)
       return () => window.clearTimeout(t)
     }
-  }, [rhConfirmed, brandConfirmed, advancing, router])
+    if (role === 'brand' && brandAck && !rhAck) {
+      const t = window.setTimeout(() => setRhAck(true), 900)
+      return () => window.clearTimeout(t)
+    }
+  }, [role, rhAck, brandAck])
 
   if (hydrated && !match) {
     return (
@@ -321,12 +342,15 @@ export function ConfirmStage() {
 
       <OfflineNote />
 
-      <DualCta
-        rhConfirmed={rhConfirmed}
-        brandConfirmed={brandConfirmed}
-        advancing={advancing}
-        onRh={() => setRhConfirmed(true)}
-        onBrand={() => setBrandConfirmed(true)}
+      <RoleAckPanel
+        role={role}
+        rhAck={rhAck}
+        brandAck={brandAck}
+        onAck={(side) => {
+          if (side === 'rh') setRhAck(true)
+          else setBrandAck(true)
+        }}
+        onContinue={() => router.push('/contract')}
       />
     </div>
   )
@@ -347,14 +371,15 @@ function Hero({
         className="font-mono text-[10.5px] tracking-[0.28em] uppercase"
         style={{ color: '#5DCAA5' }}
       >
-        Golden Match — Both sides confirmed
+        Golden Match — Mutual role check
       </span>
       <h1 className="text-[22px] font-bold tracking-[-0.02em] text-altr-white md:text-[26px]">
         {brand.brandName}{' '}
         <span className="text-altr-text-3">×</span> {meta.shortName}
       </h1>
       <p className="text-[12.5px] leading-[1.5] text-altr-text-2">
-        Audience fit verified. Deliverables agreed. ROI estimated.
+        Audience fit verified. Deliverables drafted. Each side acknowledges its own
+        role before contract terms.
       </p>
       <span className="mt-1 font-mono text-[10.5px] tracking-[0.18em] text-altr-text-3 uppercase">
         {matchScore}% match · {brand.timeline}
@@ -734,101 +759,119 @@ function OfflineNote() {
   )
 }
 
-function DualCta({
-  rhConfirmed,
-  brandConfirmed,
-  advancing,
-  onRh,
-  onBrand,
+function RoleAckPanel({
+  role,
+  rhAck,
+  brandAck,
+  onAck,
+  onContinue,
 }: {
-  rhConfirmed: boolean
-  brandConfirmed: boolean
-  advancing: boolean
-  onRh: () => void
-  onBrand: () => void
+  role: WaitlistRole | null
+  rhAck: boolean
+  brandAck: boolean
+  onAck: (side: 'rh' | 'brand') => void
+  onContinue: () => void
 }) {
+  const bothAck = rhAck && brandAck
+  // If role isn't set yet (user skipped sign-in), let either side act.
+  const userIsRh = role === 'live-ip' || role === null
+  const userIsBrand = role === 'brand' || role === null
+
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-white/[0.06] bg-altr-card p-5 md:p-6">
+    <section className="flex flex-col gap-4 rounded-2xl border border-white/[0.06] bg-altr-card p-5 md:p-6">
+      <div className="flex flex-col gap-1">
+        <span className="font-mono text-[10.5px] uppercase tracking-[0.22em] text-altr-white">
+          Acknowledge mutual roles
+        </span>
+        <p className="text-[12px] leading-[1.55] text-altr-text-2">
+          Both parties confirm they understand each other&apos;s deliverables. This is
+          not a contract — binding terms are signed on the next step.
+        </p>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
-        <ConfirmButton
-          label="Right Holder confirms"
-          confirmed={rhConfirmed}
-          waitingFor={brandConfirmed ? null : 'brand'}
-          advancing={advancing}
-          onConfirm={onRh}
+        <AckTile
           side="rh"
+          ack={rhAck}
+          isUserSide={userIsRh}
+          onAck={() => onAck('rh')}
         />
-        <ConfirmButton
-          label="Brand confirms"
-          confirmed={brandConfirmed}
-          waitingFor={rhConfirmed ? null : 'right holder'}
-          advancing={advancing}
-          onConfirm={onBrand}
+        <AckTile
           side="brand"
+          ack={brandAck}
+          isUserSide={userIsBrand}
+          onAck={() => onAck('brand')}
         />
       </div>
-      {advancing ? (
-        <p
-          className="text-center font-mono text-[11px] tracking-[0.18em] uppercase"
-          style={{ color: '#5DCAA5' }}
-        >
-          Both confirmed · Generating contract...
-        </p>
-      ) : (
-        <p className="text-center text-[10.5px] leading-[1.55] text-altr-text-3">
-          By confirming, both parties agree to proceed to auto-generated contract terms on the
-          next step. No binding commitment until /contract is signed.
-        </p>
-      )}
+
+      <button
+        type="button"
+        disabled={!bothAck}
+        onClick={onContinue}
+        className="rounded-lg bg-altr-mint px-5 py-3 text-[14px] font-semibold text-altr-white transition enabled:hover:bg-altr-mint-bright disabled:cursor-not-allowed disabled:bg-altr-mint/15 disabled:text-altr-text-3"
+      >
+        {bothAck
+          ? 'Proceed to contract terms →'
+          : 'Proceed to contract terms — both must acknowledge'}
+      </button>
     </section>
   )
 }
 
-function ConfirmButton({
-  label,
-  confirmed,
-  waitingFor,
-  advancing,
-  onConfirm,
+function AckTile({
   side,
+  ack,
+  isUserSide,
+  onAck,
 }: {
-  label: string
-  confirmed: boolean
-  waitingFor: string | null
-  advancing: boolean
-  onConfirm: () => void
   side: 'rh' | 'brand'
+  ack: boolean
+  isUserSide: boolean
+  onAck: () => void
 }) {
-  if (confirmed) {
+  const label = side === 'rh' ? 'LIVE IP role' : 'Brand role'
+  const accent = side === 'rh' ? '#5DCAA5' : '#A8E6CF'
+
+  if (ack) {
     return (
       <div
-        className="flex flex-col items-center justify-center gap-1 rounded-lg border bg-black/30 px-4 py-3.5"
+        className="flex flex-col items-center justify-center gap-1 rounded-lg border bg-black/30 px-4 py-3.5 text-center"
         style={{ borderColor: 'rgba(93,202,165,0.35)' }}
       >
         <span
           className="font-mono text-[10.5px] tracking-[0.22em] uppercase"
           style={{ color: '#5DCAA5' }}
         >
-          ✓ Confirmed
+          ✓ {label} acknowledged
         </span>
-        <span className="text-[11.5px] text-altr-text-2">
-          {waitingFor ? `Waiting for ${waitingFor} to confirm...` : 'Ready to proceed'}
+        <span className="text-[11px] text-altr-text-3">
+          {isUserSide ? 'by you' : 'by counterparty'}
         </span>
       </div>
     )
   }
-  const accent = side === 'rh' ? '#5DCAA5' : '#A8E6CF'
+
+  if (!isUserSide) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-white/[0.12] bg-black/15 px-4 py-3.5 text-center">
+        <span className="font-mono text-[10.5px] tracking-[0.22em] text-altr-text-3 uppercase">
+          Waiting · {label}
+        </span>
+        <span className="text-[11px] text-altr-text-3">
+          counterparty hasn&apos;t acknowledged yet
+        </span>
+      </div>
+    )
+  }
+
   return (
     <button
       type="button"
-      disabled={advancing}
-      onClick={onConfirm}
-      className="rounded-lg border bg-altr-bg/30 px-4 py-3.5 text-[13.5px] font-medium text-altr-white transition hover:bg-altr-bg/60 disabled:opacity-50"
+      onClick={onAck}
+      className="rounded-lg border bg-altr-bg/30 px-4 py-3.5 text-center text-[13px] font-medium text-altr-white transition hover:bg-altr-bg/60"
       style={{ borderColor: accent + '55' }}
     >
-      {side === 'rh' ? '← ' : ''}
-      {label}
-      {side === 'brand' ? ' →' : ''}
+      I acknowledge — {label}
     </button>
   )
 }
