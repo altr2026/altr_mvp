@@ -1,11 +1,11 @@
 export function WhyWeExist() {
   return (
     <section className="px-6 py-16 md:px-8 md:py-24">
-      <div className="mx-auto max-w-4xl">
-        <h2 className="text-[24px] font-semibold leading-[1.15] tracking-[-0.025em] md:text-[34px]">
+      <div className="mx-auto max-w-6xl">
+        <h2 className="max-w-4xl text-[24px] font-semibold leading-[1.15] tracking-[-0.025em] md:text-[34px]">
           Sponsorship is broken. We&apos;re fixing it.
         </h2>
-        <div className="mt-7 space-y-4 text-[14px] leading-[1.7] text-altr-text-2 md:text-[15px]">
+        <div className="mt-7 max-w-4xl space-y-4 text-[14px] leading-[1.7] text-altr-text-2 md:text-[15px]">
           <p>
             Sponsorship today still runs on PDF decks, three-week deal cycles,
             and SWIFT wires that arrive a week after the event ends. Brands

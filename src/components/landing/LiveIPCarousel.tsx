@@ -105,7 +105,7 @@ export function LiveIPCarousel({ rightHolders }: Props) {
   const [filters, setFilters] = useState<Filters>(DEFAULTS)
 
   const filtered = useMemo(() => {
-    return rightHolders.filter((rh) => {
+    const matched = rightHolders.filter((rh) => {
       if (filters.region !== 'all' && rh.region !== filters.region) return false
       if (
         filters.vertical !== 'all' &&
@@ -116,6 +116,13 @@ export function LiveIPCarousel({ rightHolders }: Props) {
       if (!matchPeriod(rh, filters.period)) return false
       return true
     })
+    // Sort chronologically by each RH's earliest available slot. Anything
+    // without a slot date sinks to the end so it doesn't break the timeline.
+    const earliest = (rh: RightHolder): string => {
+      const dates = rh.availableSlots.map((s) => s.startDate).sort()
+      return dates[0] ?? '9999-12-31'
+    }
+    return matched.slice().sort((a, b) => earliest(a).localeCompare(earliest(b)))
   }, [rightHolders, filters])
 
   const hasActiveFilter = Object.values(filters).some((v) => v !== 'all')
