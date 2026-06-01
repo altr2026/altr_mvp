@@ -155,9 +155,9 @@ const WINDOW_DURATIONS = [
 
 const PREV_HISTORY = [
   'None — first overseas brand cohort',
-  '1-2 K-brands (pop-up)',
-  '3+ K-brands hosted',
-  'Korean pavilion exists',
+  '1-2 overseas brands hosted (pop-up)',
+  '3+ overseas brands hosted',
+  'Dedicated regional pavilion (K / JP / CN)',
 ]
 
 export function StageProfileForm() {

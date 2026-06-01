@@ -66,7 +66,7 @@ export const DEFAULT_STAGE: StageProfile = {
   partnershipTypes: ['Sponsor', 'Content partner'],
   nextEdition: 'Q4 2026',
   windowDuration: '6-month residency available',
-  prevOverseasBrands: '1-2 K-brands (pop-up)',
+  prevOverseasBrands: '1-2 overseas brands hosted (pop-up)',
   notes: '',
 }
 
