@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStageState } from '@/components/providers/StageStateProvider'
+import { SampleBrandCatalog } from '@/components/list-stage/SampleBrandCatalog'
 import type {
   StageProfile,
   StageScreening,
@@ -207,6 +208,8 @@ export function StageScreenPage() {
           ))}
         </div>
       </section>
+
+      <SampleBrandCatalog />
 
       <section className="rounded-2xl border border-white/[0.06] bg-altr-card p-6 md:p-7">
         <span className="font-mono text-[10px] tracking-[0.22em] text-altr-text-3 uppercase">
