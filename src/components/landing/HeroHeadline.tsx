@@ -40,8 +40,9 @@ export function HeroHeadline() {
         >
           {right}
         </span>
-        , with us.
+        ,
       </span>
+      <span className="block">with us.</span>
     </h1>
   )
 }
